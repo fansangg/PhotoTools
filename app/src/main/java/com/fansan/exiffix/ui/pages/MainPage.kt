@@ -1,7 +1,10 @@
 package com.fansan.exiffix.ui.pages
 
+import android.app.Activity
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
@@ -30,6 +33,7 @@ import com.fansan.exiffix.ui.widgets.TitleColumn
 fun MainPage(navHostController: NavHostController) {
 	val viewModel = viewModel<ExplorerViewModel>(LocalContext.current as ComponentActivity)
 	val confirmPath = viewModel.confirmPath.collectAsStateWithLifecycle()
+	BackHandler()
 	TitleColumn(title = "HOME", withBackIcon = false, backClick = { }) {
 		SpacerH(height = 20.dp)
 		Text(
@@ -61,4 +65,18 @@ fun MainPage(navHostController: NavHostController) {
 
 	}
 
+}
+
+@Composable
+fun BackHandler(){
+	var exitTime = 0L
+	val context = LocalContext.current
+	BackHandler {
+		if (System.currentTimeMillis() - exitTime > 2000){
+			Toast.makeText(context,"再按一次退出",Toast.LENGTH_SHORT).show()
+			exitTime = System.currentTimeMillis()
+		}else{
+			(context as Activity).finish()
+		}
+	}
 }

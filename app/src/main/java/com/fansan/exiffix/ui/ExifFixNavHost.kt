@@ -7,6 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.fansan.exiffix.ui.entity.ErrorFile
+import com.fansan.exiffix.ui.entity.ErrorFileNavType
+import com.fansan.exiffix.ui.pages.CheckListPage
 import com.fansan.exiffix.ui.pages.ExplorerPage
 import com.fansan.exiffix.ui.pages.MainPage
 import com.fansan.exiffix.ui.pages.ScanPage
@@ -30,6 +33,17 @@ fun ExifFIXNavHost(modifier: Modifier, navController: NavHostController = rememb
 
 		composable("SCAN/{path}", arguments = listOf(navArgument(name = "path") {})) {
 			ScanPage(navHostController = navController, it.arguments?.getString("path") ?: "")
+		}
+
+		composable(
+			"CHECK/{list}",
+			arguments = listOf(navArgument("list") { type = ErrorFileNavType() })
+		) {
+			val list = it.arguments?.getParcelableArrayList<ErrorFile>("list")?: arrayListOf()
+			CheckListPage(
+				navHostController = navController,
+				list = list
+			)
 		}
 	}
 }

@@ -2,6 +2,7 @@ package com.fansan.exiffix.ui.pages
 
 import android.Manifest
 import android.net.Uri
+import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -36,7 +37,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 @Composable
 fun ExplorerPage(navHostController: NavHostController) {
 	val readPermissionState =
-		rememberPermissionState(permission = Manifest.permission.READ_EXTERNAL_STORAGE)
+		rememberPermissionState(permission = if (Build.VERSION.SDK_INT >= 33 ) Manifest.permission.READ_MEDIA_IMAGES else Manifest.permission.READ_EXTERNAL_STORAGE)
 	val childNavHostController = rememberNavController()
 	val viewModel = viewModel<ExplorerViewModel>(LocalContext.current as ComponentActivity)
 	TitleColumn(title = "EXLPORER", backClick = { navHostController.popBackStack() }) {

@@ -1,9 +1,11 @@
 package com.fansan.exiffix.ui.viewmodel
 
 import android.media.ExifInterface
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -23,7 +25,8 @@ import java.io.File
 class ScanViewModel:ViewModel() {
 
 	var scanProgress by mutableStateOf(0f)
-	val matchFileList = mutableListOf<ErrorFile>()
+	var currentIndex = 0
+	val matchFileList = mutableStateListOf<ErrorFile>()
 	var currentExecFileName = mutableStateOf("")
 	var totalFileSize = 0
 
@@ -32,12 +35,13 @@ class ScanViewModel:ViewModel() {
 			val files = FileUtils.listFilesInDirWithFilter(path) {
 				it.isFile && (it.name.endsWith(".png") || it.name.endsWith(".jpg") || it.name.endsWith(".jepg") || it.name.endsWith(
 					".HEIC"
-				) || it.name.endsWith(".JPG"))
+				) || it.name.endsWith(".JPG") || it.name.endsWith(".PNG") || it.name.endsWith(".JEPG"))
 			}
 			totalFileSize = files.size
 			files.forEachIndexed { index, file ->
-				scanProgress = (index+1) / files.size.toFloat()
+				currentIndex = index + 1
 				currentExecFileName.value = file.name
+				scanProgress = (index+1) / files.size.toFloat()
 				try {
 					val exifInterface = ExifInterface(file)
 					val dataTime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME)
