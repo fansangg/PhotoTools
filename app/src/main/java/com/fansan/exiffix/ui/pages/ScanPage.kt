@@ -15,12 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.blankj.utilcode.util.GsonUtils
+import com.fansan.exiffix.ui.common.logd
 import com.fansan.exiffix.ui.entity.ErrorFile
 import com.fansan.exiffix.ui.viewmodel.ScanViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.TitleColumn
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 /**
  *@author  fansan
@@ -34,9 +34,8 @@ fun ScanPage(navHostController: NavHostController, path: String) {
 	val viewModel = viewModel<ScanViewModel>()
 
 	LaunchedEffect(key1 = Unit, block = {
-		withContext(Dispatchers.IO) {
-			viewModel.scanFiles(selectedPath)
-		}
+		viewModel.scanFiles(selectedPath)
+//		viewModel.test(selectedPath)
 	})
 
 	TitleColumn(title = "Scan", backClick = { navHostController.popBackStack() }) {

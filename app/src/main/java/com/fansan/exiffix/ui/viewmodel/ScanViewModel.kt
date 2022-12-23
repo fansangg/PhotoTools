@@ -14,6 +14,7 @@ import com.fansan.exiffix.ui.entity.ErrorFile
 import com.fansan.exiffix.ui.entity.ErrorType
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 import kotlin.coroutines.coroutineContext
 import kotlin.math.ceil
@@ -59,7 +60,6 @@ class ScanViewModel:ViewModel() {
 			newList.forEach {
 				with(CoroutineScope(coroutineContext)){
 					launch {
-						"Thread.currentThread().name == ${Thread.currentThread().name}  group == ${Thread.currentThread().threadGroup?.name}".logd()
 						analysisFiles(it)
 					}
 				}
@@ -69,9 +69,9 @@ class ScanViewModel:ViewModel() {
 		}
 	}
 
-	private fun analysisFiles(list: List<File>) {
+	private suspend fun analysisFiles(list: List<File>) {
 		"analysisFiles".logd()
-		list.forEachIndexed { index, file ->
+		list.forEach { file ->
 			currentIndex++
 			currentExecFileName.value = file.name
 			scanProgress = currentIndex / totalFileSize.toFloat()
@@ -90,6 +90,7 @@ class ScanViewModel:ViewModel() {
 			} catch (e: Exception) {
 				matchFileList.add(ErrorFile(ErrorType.OTHERERROR, file.absolutePath))
 			}
+			delay(10)
 		}
 	}
 }
