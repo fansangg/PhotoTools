@@ -19,6 +19,8 @@ import com.fansan.exiffix.ui.entity.ErrorFile
 import com.fansan.exiffix.ui.viewmodel.ScanViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.TitleColumn
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  *@author  fansan
@@ -32,7 +34,9 @@ fun ScanPage(navHostController: NavHostController, path: String) {
 	val viewModel = viewModel<ScanViewModel>()
 
 	LaunchedEffect(key1 = Unit, block = {
-		viewModel.scanFiles(selectedPath)
+		withContext(Dispatchers.IO) {
+			viewModel.scanFiles(selectedPath)
+		}
 	})
 
 	TitleColumn(title = "Scan", backClick = { navHostController.popBackStack() }) {

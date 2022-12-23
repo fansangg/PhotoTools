@@ -1,21 +1,25 @@
 package com.fansan.exiffix.ui.viewmodel
 
 import android.media.ExifInterface
-import android.net.Uri
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.FileUtils
 import com.blankj.utilcode.util.TimeUtils
+import com.fansan.exiffix.ui.common.logd
 import com.fansan.exiffix.ui.entity.ErrorFile
 import com.fansan.exiffix.ui.entity.ErrorType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
 import java.io.File
+import kotlin.coroutines.coroutineContext
+import kotlin.math.ceil
+import kotlin.system.measureTimeMillis
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 
 /**
  *@author  fansan
@@ -29,34 +33,62 @@ class ScanViewModel:ViewModel() {
 	val matchFileList = mutableStateListOf<ErrorFile>()
 	var currentExecFileName = mutableStateOf("")
 	var totalFileSize = 0
+	private val mutex = Mutex()
 
 	suspend fun scanFiles(path:String){
-		withContext(Dispatchers.IO){
+		val time = measureTimeMillis {
 			val files = FileUtils.listFilesInDirWithFilter(path) {
-				it.isFile && (it.name.endsWith(".png") || it.name.endsWith(".jpg") || it.name.endsWith(".jepg") || it.name.endsWith(
+				it.isFile && (it.name.endsWith(".png") || it.name.endsWith(".jpg") || it.name.endsWith(
+					".jepg"
+				) || it.name.endsWith(
 					".HEIC"
 				) || it.name.endsWith(".JPG") || it.name.endsWith(".PNG") || it.name.endsWith(".JEPG"))
 			}
 			totalFileSize = files.size
-			files.forEachIndexed { index, file ->
-				currentIndex = index + 1
-				currentExecFileName.value = file.name
-				scanProgress = (index+1) / files.size.toFloat()
-				try {
-					val exifInterface = ExifInterface(file)
-					val dataTime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME)
-					if (dataTime!= null){
-						val millis =
-							TimeUtils.string2Millis(dataTime, "yyyy:MM:dd HH:mm:ss")
-						if (file.lastModified() != millis){
-							matchFileList.add(ErrorFile(ErrorType.DATENOMATCH,file.absolutePath))
-						}
-					}else{
-						matchFileList.add(ErrorFile(ErrorType.NOEXIF,file.absolutePath))
+			slipList(files)
+		}
+
+		"耗时： == $time".logd()
+
+	}
+
+	private suspend fun slipList(list: List<File>) {
+		if (list.size > 100) {
+			val result = ceil(list.size / 5.0).toInt()
+			val newList = list.chunked(result)
+			newList.forEach {
+				with(CoroutineScope(coroutineContext)){
+					launch {
+						"Thread.currentThread().name == ${Thread.currentThread().name}  group == ${Thread.currentThread().threadGroup?.name}".logd()
+						analysisFiles(it)
 					}
-				} catch (e: Exception) {
-					matchFileList.add(ErrorFile(ErrorType.OTHERERROR,file.absolutePath))
 				}
+			}
+		} else {
+			analysisFiles(list)
+		}
+	}
+
+	private fun analysisFiles(list: List<File>) {
+		"analysisFiles".logd()
+		list.forEachIndexed { index, file ->
+			currentIndex++
+			currentExecFileName.value = file.name
+			scanProgress = currentIndex / totalFileSize.toFloat()
+			"currentIndex == $currentIndex".logd()
+			try {
+				val exifInterface = ExifInterface(file)
+				val dataTime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME)
+				if (dataTime != null) {
+					val millis = TimeUtils.string2Millis(dataTime, "yyyy:MM:dd HH:mm:ss")
+					if (file.lastModified() != millis) {
+						matchFileList.add(ErrorFile(ErrorType.DATENOMATCH, file.absolutePath))
+					}
+				} else {
+					matchFileList.add(ErrorFile(ErrorType.NOEXIF, file.absolutePath))
+				}
+			} catch (e: Exception) {
+				matchFileList.add(ErrorFile(ErrorType.OTHERERROR, file.absolutePath))
 			}
 		}
 	}

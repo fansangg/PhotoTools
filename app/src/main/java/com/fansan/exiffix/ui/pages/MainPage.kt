@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.blankj.utilcode.util.ClickUtils
 import com.fansan.exiffix.ui.viewmodel.ExplorerViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.TitleColumn
@@ -69,14 +70,7 @@ fun MainPage(navHostController: NavHostController) {
 
 @Composable
 fun BackHandler(){
-	var exitTime = 0L
-	val context = LocalContext.current
 	BackHandler {
-		if (System.currentTimeMillis() - exitTime > 2000){
-			Toast.makeText(context,"再按一次退出",Toast.LENGTH_SHORT).show()
-			exitTime = System.currentTimeMillis()
-		}else{
-			(context as Activity).finish()
-		}
+		ClickUtils.back2HomeFriendly("再按一次退出")
 	}
 }
