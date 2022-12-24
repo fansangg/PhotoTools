@@ -22,10 +22,7 @@ import com.blankj.utilcode.util.PathUtils
 import com.fansan.exiffix.ui.viewmodel.ExplorerViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.TitleColumn
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
+import com.google.accompanist.permissions.*
 
 /**
  *@author  fansan
@@ -36,8 +33,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ExplorerPage(navHostController: NavHostController) {
-	val readPermissionState =
-		rememberPermissionState(permission = if (Build.VERSION.SDK_INT >= 33 ) Manifest.permission.READ_MEDIA_IMAGES else Manifest.permission.READ_EXTERNAL_STORAGE)
+	val readPermissionState = rememberMultiplePermissionsState(permissions = if (Build.VERSION.SDK_INT >= 33 ) listOf(Manifest.permission.READ_MEDIA_IMAGES,Manifest.permission.READ_MEDIA_VIDEO) else listOf(Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE))
 	val childNavHostController = rememberNavController()
 	val viewModel = viewModel<ExplorerViewModel>(LocalContext.current as ComponentActivity)
 	TitleColumn(title = "File Explorer", backClick = { navHostController.popBackStack() }) {
@@ -46,7 +42,7 @@ fun ExplorerPage(navHostController: NavHostController) {
 				viewModel.fileCacheMap.clear()
 			}
 		})
-		if (readPermissionState.status.isGranted) {
+		if (readPermissionState.allPermissionsGranted) {
 			NavHost(
 				navController = childNavHostController,
 				startDestination = "FILE/{filePath}/{parent}",
@@ -65,14 +61,15 @@ fun ExplorerPage(navHostController: NavHostController) {
 				}
 			}
 		} else {
-			val textToShow = if (readPermissionState.status.shouldShowRationale) {
+			readPermissionState.revokedPermissions
+			val textToShow = if (readPermissionState.shouldShowRationale) {
 				"需要存储权限,请允许"
 			} else {
-				"获取文件夹信息需要存储权限" + "请允许此权限"
+				"获取文件夹信息需要存储权限\n请允许此权限"
 			}
 			Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) { 	Text(textToShow)
 				SpacerH(height = 20.dp)
-				ElevatedButton(onClick = { readPermissionState.launchPermissionRequest() }) {
+				ElevatedButton(onClick = { readPermissionState.launchMultiplePermissionRequest()}) {
 					Text("Request Permission")
 				}
 			}
