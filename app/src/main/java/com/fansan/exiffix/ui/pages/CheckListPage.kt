@@ -1,7 +1,9 @@
 package com.fansan.exiffix.ui.pages
 
+import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,16 +15,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.blankj.utilcode.util.GsonUtils
 import com.blankj.utilcode.util.TimeUtils
 import com.fansan.exiffix.ui.entity.ErrorFile
 import com.fansan.exiffix.ui.entity.ErrorType
 import com.fansan.exiffix.ui.widgets.SpacerW
 import com.fansan.exiffix.ui.widgets.TitleColumn
+import com.google.gson.Gson
 import java.io.File
 
 /**
@@ -34,48 +41,61 @@ import java.io.File
 @Composable
 fun CheckListPage(navHostController: NavHostController, list: List<ErrorFile>) {
 
-	val noExifList = list.filter {
-		it.type == ErrorType.NOEXIF
-	}
-	val dateNoMathList = list.filter {
-		it.type == ErrorType.DATENOMATCH
-	}
-	val otherErrorList = list.filter {
-		it.type == ErrorType.OTHERERROR
+	val typeList = list.groupBy {
+		it.type
 	}
 
-	TitleColumn(title = "CheckList", backClick = { navHostController.popBackStack() }) {
+	TitleColumn(title = "Result List", backClick = { navHostController.popBackStack() }) {
 		LazyColumn(
 			modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 4.dp)
 		) {
 
-			if (noExifList.isNotEmpty()) {
-				stickyHeader {
-					GroupHeader(errorInfo = "NO EXIF DATE")
-				}
 
-				items(noExifList) {
-					ErrorDetailsCard(error = it)
+			stickyHeader {
+				GroupHeader(errorInfo = "No Date")
+			}
+
+			if (typeList[ErrorType.NOEXIF].isNullOrEmpty()) {
+				item {
+					EmptyItem()
+				}
+			} else {
+				items(typeList[ErrorType.NOEXIF]!!) {
+					ErrorDetailsCard(error = it){
+						navHostController.navigate("DETAILSPAGE/${Uri.encode(GsonUtils.toJson(it))}")
+					}
 				}
 			}
 
-			if (dateNoMathList.isNotEmpty()) {
-				stickyHeader {
-					GroupHeader(errorInfo = "DATE NOT MATCH")
-				}
+			stickyHeader {
+				GroupHeader(errorInfo = "Exif Date Not Match")
+			}
 
-				items(dateNoMathList) {
-					ErrorDetailsCard(error = it)
+			if (typeList[ErrorType.DATENOMATCH].isNullOrEmpty()) {
+				item {
+					EmptyItem()
+				}
+			} else {
+				items(typeList[ErrorType.DATENOMATCH]!!) {
+					ErrorDetailsCard(error = it){
+						navHostController.navigate("DETAILSPAGE/${Uri.encode(GsonUtils.toJson(it))}")
+					}
 				}
 			}
 
-			if (otherErrorList.isNotEmpty()) {
-				stickyHeader {
-					GroupHeader(errorInfo = "OTHER ERROR")
-				}
+			stickyHeader {
+				GroupHeader(errorInfo = "Other Error")
+			}
 
-				items(otherErrorList) {
-					ErrorDetailsCard(error = it)
+			if (typeList[ErrorType.OTHERERROR].isNullOrEmpty()) {
+				item {
+					EmptyItem()
+				}
+			} else {
+				items(typeList[ErrorType.OTHERERROR]!!) {
+					ErrorDetailsCard(error = it){
+						navHostController.navigate("DETAILSPAGE/${Uri.encode(GsonUtils.toJson(it))}")
+					}
 				}
 			}
 		}
@@ -99,7 +119,7 @@ fun GroupHeader(errorInfo: String) {
 }
 
 @Composable
-fun ErrorDetailsCard(error: ErrorFile) {
+fun ErrorDetailsCard(error: ErrorFile, click: () -> Unit) {
 	val file = remember {
 		File(error.path)
 	}
@@ -107,12 +127,14 @@ fun ErrorDetailsCard(error: ErrorFile) {
 		modifier = Modifier
 			.fillMaxWidth()
 			.wrapContentHeight()
-			.padding(vertical = 6.dp, horizontal = 8.dp),
+			.padding(vertical = 6.dp, horizontal = 8.dp)
+			.clickable(onClick = click),
 		verticalAlignment = Alignment.CenterVertically
 	) {
 
 		AsyncImage(
-			model = error.path,
+			model = ImageRequest.Builder(LocalContext.current).data(error.path).crossfade(true)
+				.build(),
 			contentDescription = "thumbnail",
 			contentScale = ContentScale.Crop,
 			filterQuality = FilterQuality.Low,
@@ -126,4 +148,15 @@ fun ErrorDetailsCard(error: ErrorFile) {
 			Text(text = TimeUtils.millis2String(file.lastModified()), fontSize = 10.sp)
 		}
 	}
+}
+
+@Composable
+fun EmptyItem() {
+	Text(
+		text = "Nothing",
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(vertical = 12.dp),
+		textAlign = TextAlign.Center
+	)
 }

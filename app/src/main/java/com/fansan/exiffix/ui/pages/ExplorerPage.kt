@@ -40,7 +40,7 @@ fun ExplorerPage(navHostController: NavHostController) {
 		rememberPermissionState(permission = if (Build.VERSION.SDK_INT >= 33 ) Manifest.permission.READ_MEDIA_IMAGES else Manifest.permission.READ_EXTERNAL_STORAGE)
 	val childNavHostController = rememberNavController()
 	val viewModel = viewModel<ExplorerViewModel>(LocalContext.current as ComponentActivity)
-	TitleColumn(title = "EXLPORER", backClick = { navHostController.popBackStack() }) {
+	TitleColumn(title = "File Explorer", backClick = { navHostController.popBackStack() }) {
 		DisposableEffect(key1 = Unit, effect = {
 			onDispose {
 				viewModel.fileCacheMap.clear()
@@ -73,7 +73,7 @@ fun ExplorerPage(navHostController: NavHostController) {
 			Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) { 	Text(textToShow)
 				SpacerH(height = 20.dp)
 				ElevatedButton(onClick = { readPermissionState.launchPermissionRequest() }) {
-					Text("Request permission")
+					Text("Request Permission")
 				}
 			}
 		}

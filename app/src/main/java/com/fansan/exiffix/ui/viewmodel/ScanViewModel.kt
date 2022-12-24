@@ -6,21 +6,18 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.FileUtils
 import com.blankj.utilcode.util.TimeUtils
-import com.fansan.exiffix.ui.common.logd
 import com.fansan.exiffix.ui.entity.ErrorFile
 import com.fansan.exiffix.ui.entity.ErrorType
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.yield
 import java.io.File
 import kotlin.coroutines.coroutineContext
 import kotlin.math.ceil
-import kotlin.system.measureTimeMillis
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
 
 /**
  *@author  fansan
@@ -36,21 +33,22 @@ class ScanViewModel:ViewModel() {
 	var totalFileSize = 0
 	private val mutex = Mutex()
 
-	suspend fun scanFiles(path:String){
-		val time = measureTimeMillis {
-			val files = FileUtils.listFilesInDirWithFilter(path) {
-				it.isFile && (it.name.endsWith(".png") || it.name.endsWith(".jpg") || it.name.endsWith(
-					".jepg"
-				) || it.name.endsWith(
-					".HEIC"
-				) || it.name.endsWith(".JPG") || it.name.endsWith(".PNG") || it.name.endsWith(".JEPG"))
-			}
-			totalFileSize = files.size
+	suspend fun scanFiles(path:String) {
+		val files = FileUtils.listFilesInDirWithFilter(path) {
+			it.isFile && (it.name.endsWith(".png") || it.name.endsWith(".jpg") || it.name.endsWith(
+				".jpeg"
+			) || it.name.endsWith(
+				".HEIC"
+			) || it.name.endsWith(
+				".heic"
+			) || it.name.endsWith(".JPG") || it.name.endsWith(".PNG") || it.name.endsWith(".JPEG"))
+		}
+		totalFileSize = files.size
+		if (totalFileSize == 0) {
+			currentExecFileName.value = "empty"
+		} else {
 			slipList(files)
 		}
-
-		"耗时： == $time".logd()
-
 	}
 
 	private suspend fun slipList(list: List<File>) {
@@ -70,19 +68,19 @@ class ScanViewModel:ViewModel() {
 	}
 
 	private suspend fun analysisFiles(list: List<File>) {
-		"analysisFiles".logd()
 		list.forEach { file ->
-			currentIndex++
-			currentExecFileName.value = file.name
-			scanProgress = currentIndex / totalFileSize.toFloat()
-			"currentIndex == $currentIndex".logd()
+			mutex.withLock {
+				currentIndex++
+				currentExecFileName.value = file.name
+				scanProgress = currentIndex / totalFileSize.toFloat()
+			}
 			try {
 				val exifInterface = ExifInterface(file)
 				val dataTime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME)
 				if (dataTime != null) {
 					val millis = TimeUtils.string2Millis(dataTime, "yyyy:MM:dd HH:mm:ss")
 					if (file.lastModified() != millis) {
-						matchFileList.add(ErrorFile(ErrorType.DATENOMATCH, file.absolutePath))
+						matchFileList.add(ErrorFile(ErrorType.DATENOMATCH, file.absolutePath,TimeUtils.millis2String(millis)))
 					}
 				} else {
 					matchFileList.add(ErrorFile(ErrorType.NOEXIF, file.absolutePath))
@@ -90,7 +88,7 @@ class ScanViewModel:ViewModel() {
 			} catch (e: Exception) {
 				matchFileList.add(ErrorFile(ErrorType.OTHERERROR, file.absolutePath))
 			}
-			delay(10)
+			//yield()
 		}
 	}
 }

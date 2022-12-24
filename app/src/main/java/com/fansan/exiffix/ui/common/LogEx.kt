@@ -21,3 +21,16 @@ fun String.logd() {
       |$this
    """.trimMargin())
 }
+
+@SuppressLint("LogNotTimber")
+fun String.loge() {
+	val methodName = Thread.currentThread().stackTrace[3].methodName
+	val  className = Thread.currentThread().stackTrace[3].className
+	val fileName = Thread.currentThread().stackTrace[3].fileName
+	val number = Thread.currentThread().stackTrace[3].lineNumber
+	val infoText = Formatter().format("%s.%s(%s:%d)", className, methodName, fileName, number)
+	LogUtils.eTag("fansangg", """$infoText
+      |
+      |$this
+   """.trimMargin())
+}

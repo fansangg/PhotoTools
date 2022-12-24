@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,7 +65,7 @@ fun DirsList(
 
 		LazyColumn(
 			modifier = Modifier.fillMaxSize(),
-			contentPadding = PaddingValues(vertical = 10.dp),
+			contentPadding = PaddingValues(top = 10.dp, bottom = if (fileList.isNotEmpty() && !viewModel.isRoot(path)) 90.dp else 10.dp),
 			verticalArrangement = Arrangement.spacedBy(12.dp)
 		) {
 			if (!viewModel.isRoot(path)) {
@@ -108,7 +109,7 @@ fun DirsList(
 				viewModel.confirmPath.tryEmit(path)
 				confirmClick.invoke()
 			}) {
-				Text(text = "CONFIRM")
+				Text(text = "Select This Folder")
 			}
 		}
 	}
@@ -182,7 +183,7 @@ fun FileItemCard(file: File, itemClick: () -> Unit) {
 }
 
 @Composable
-fun EmptyDir(modifier: Modifier) {
+fun EmptyDir(modifier: Modifier,tips:String = "Empty Folder") {
 	Column(
 		modifier = modifier,
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -193,7 +194,7 @@ fun EmptyDir(modifier: Modifier) {
 			contentDescription = "empty",
 			modifier = Modifier.size(60.dp)
 		)
-		SpacerH(height = 12.dp)
-		Text(text = "Empty Folder", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+		SpacerH(height = 8.dp)
+		Text(text = tips, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
 	}
 }

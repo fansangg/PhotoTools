@@ -34,50 +34,55 @@ fun ScanPage(navHostController: NavHostController, path: String) {
 	val viewModel = viewModel<ScanViewModel>()
 
 	LaunchedEffect(key1 = Unit, block = {
-		viewModel.scanFiles(selectedPath)
-//		viewModel.test(selectedPath)
+		withContext(Dispatchers.IO){
+			viewModel.scanFiles(selectedPath)
+		}
 	})
 
 	TitleColumn(title = "Scan", backClick = { navHostController.popBackStack() }) {
 
-		SpacerH(height = 20.dp)
-		Box(
-			modifier = Modifier
-				.fillMaxWidth()
-				.wrapContentHeight(),
-			contentAlignment = Alignment.Center
-		) {
+		if (viewModel.currentExecFileName.value == "empty"){
+			EmptyDir(modifier = Modifier.fillMaxSize(),"No Match Result\n Only Supprot .png .jpg .heic")
+		}else{
+			SpacerH(height = 60.dp)
+			Box(
+				modifier = Modifier
+					.fillMaxWidth()
+					.wrapContentHeight(),
+				contentAlignment = Alignment.Center
+			) {
 
-			CircularProgressIndicator(
-				progress = viewModel.scanProgress,
-				modifier = Modifier.size(180.dp),
-				strokeWidth = 5.dp
+				CircularProgressIndicator(
+					progress = viewModel.scanProgress,
+					modifier = Modifier.size(180.dp),
+					strokeWidth = 5.dp
+				)
+
+				Text(text = "${viewModel.currentIndex}/${viewModel.totalFileSize}")
+			}
+
+			SpacerH(height = 40.dp)
+			Text(
+				text = if (viewModel.scanProgress < 1) viewModel.currentExecFileName.value else "ALL DONE",
+				maxLines = 1,
+				overflow = TextOverflow.Ellipsis,
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(horizontal = 12.dp),
+				textAlign = TextAlign.Center
 			)
 
-			Text(text = "${viewModel.currentIndex}/${viewModel.totalFileSize}")
-		}
-
-		SpacerH(height = 20.dp)
-		Text(
-			text = if (viewModel.scanProgress < 1) viewModel.currentExecFileName.value else "DONE",
-			maxLines = 1,
-			overflow = TextOverflow.Ellipsis,
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(horizontal = 12.dp),
-			textAlign = TextAlign.Center
-		)
-
-		SpacerH(height = 40.dp)
-		Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-			ElevatedButton(onClick = {
-				val list = arrayListOf<ErrorFile>()
-				list.addAll(viewModel.matchFileList)
-				navHostController.navigate("CHECK/${Uri.encode(GsonUtils.toJson(list))}") {
-					popUpTo("MAIN")
+			SpacerH(height = 80.dp)
+			Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+				ElevatedButton(onClick = {
+					val list = arrayListOf<ErrorFile>()
+					list.addAll(viewModel.matchFileList)
+					navHostController.navigate("CHECK/${Uri.encode(GsonUtils.toJson(list))}") {
+						popUpTo("MAIN")
+					}
+				}, enabled = viewModel.scanProgress >= 1) {
+					Text(text = "Check Result(${viewModel.matchFileList.size})")
 				}
-			}, enabled = viewModel.scanProgress >= 1) {
-				Text(text = "CHECK(${viewModel.matchFileList.size})")
 			}
 		}
 	}

@@ -9,7 +9,7 @@ import kotlinx.android.parcel.Parcelize
  */
 
 @Parcelize
-data class ErrorFile(val type:ErrorType,val path:String):Parcelable
+data class ErrorFile(val type:ErrorType,val path:String,val exifDate:String? = null):Parcelable
 
 enum class ErrorType{
 	NOEXIF,

@@ -7,12 +7,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.blankj.utilcode.util.GsonUtils
+import com.fansan.exiffix.ui.common.logd
 import com.fansan.exiffix.ui.entity.ErrorFile
 import com.fansan.exiffix.ui.entity.ErrorFileNavType
-import com.fansan.exiffix.ui.pages.CheckListPage
-import com.fansan.exiffix.ui.pages.ExplorerPage
-import com.fansan.exiffix.ui.pages.MainPage
-import com.fansan.exiffix.ui.pages.ScanPage
+import com.fansan.exiffix.ui.pages.*
 
 /**
  *@author  fansan
@@ -36,14 +35,18 @@ fun ExifFIXNavHost(modifier: Modifier, navController: NavHostController = rememb
 		}
 
 		composable(
-			"CHECK/{list}",
-			arguments = listOf(navArgument("list") { type = ErrorFileNavType() })
+			"CHECK/{list}", arguments = listOf(navArgument("list") { type = ErrorFileNavType() })
 		) {
-			val list = it.arguments?.getParcelableArrayList<ErrorFile>("list")?: arrayListOf()
+			val list = it.arguments?.getParcelableArrayList<ErrorFile>("list") ?: arrayListOf()
 			CheckListPage(
-				navHostController = navController,
-				list = list
+				navHostController = navController, list = list
 			)
+		}
+
+		composable("DETAILSPAGE/{data}", arguments = listOf(navArgument("data") {})) {
+			val data = it.arguments?.getString("data")?:""
+			val entity = GsonUtils.fromJson(data,ErrorFile::class.java)
+			DetailsPage(navHostController = navController, errorFile = entity)
 		}
 	}
 }

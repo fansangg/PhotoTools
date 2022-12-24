@@ -6,13 +6,13 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
@@ -23,6 +23,7 @@ import com.blankj.utilcode.util.ClickUtils
 import com.fansan.exiffix.ui.viewmodel.ExplorerViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.TitleColumn
+import kotlinx.coroutines.launch
 
 /**
  *@author  fansan
@@ -35,19 +36,22 @@ fun MainPage(navHostController: NavHostController) {
 	val viewModel = viewModel<ExplorerViewModel>(LocalContext.current as ComponentActivity)
 	val confirmPath = viewModel.confirmPath.collectAsStateWithLifecycle()
 	BackHandler()
-	TitleColumn(title = "HOME", withBackIcon = false, backClick = { }) {
-		SpacerH(height = 20.dp)
+	TitleColumn(title = "Home", withBackIcon = false, backClick = { }) {
+		SpacerH(height = 50.dp)
 		Text(
-			text = confirmPath.value.ifEmpty { "SELECTED PICTURE FOLDER" },
+			text = confirmPath.value.ifEmpty { "Select Picture Folder" },
 			fontSize = 18.sp,
 			fontWeight = FontWeight.SemiBold,
-			modifier = Modifier.padding(start = 12.dp)
+			modifier = Modifier
+				.padding(start = 12.dp)
+				.fillMaxWidth(),
+			textAlign = TextAlign.Center
 		)
-		SpacerH(height = 30.dp)
+		SpacerH(height = 40.dp)
 		Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
 
 			ElevatedButton(onClick = { navHostController.navigate("EXPLORER") }) {
-				Text(text = "OPEN EXPLORER")
+				Text(text = "Open File Explorer")
 			}
 		}
 
@@ -59,7 +63,7 @@ fun MainPage(navHostController: NavHostController) {
 				contentAlignment = Alignment.Center
 			) {
 				ElevatedButton(onClick = { navHostController.navigate("SCAN/${Uri.encode(confirmPath.value)}") }) {
-					Text(text = "SCAN")
+					Text(text = "Scan Folder")
 				}
 			}
 		}
