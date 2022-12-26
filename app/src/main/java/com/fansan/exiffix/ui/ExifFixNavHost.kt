@@ -48,5 +48,9 @@ fun ExifFIXNavHost(modifier: Modifier, navController: NavHostController = rememb
 			val entity = GsonUtils.fromJson(data,ErrorFile::class.java)
 			DetailsPage(navHostController = navController, errorFile = entity)
 		}
+
+		composable("ALBUM"){
+			AlbumPage(navHostController = navController)
+		}
 	}
 }

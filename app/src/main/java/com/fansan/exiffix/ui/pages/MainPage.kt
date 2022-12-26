@@ -50,7 +50,7 @@ fun MainPage(navHostController: NavHostController) {
 		SpacerH(height = 40.dp)
 		Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
 
-			ElevatedButton(onClick = { navHostController.navigate("EXPLORER") }) {
+			ElevatedButton(onClick = { navHostController.navigate("ALBUM") }) {
 				Text(text = "Open File Explorer")
 			}
 		}
