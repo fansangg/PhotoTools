@@ -33,7 +33,7 @@ import com.google.accompanist.permissions.*
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ExplorerPage(navHostController: NavHostController) {
-	val readPermissionState = rememberMultiplePermissionsState(permissions = if (Build.VERSION.SDK_INT >= 33 ) listOf(Manifest.permission.READ_MEDIA_IMAGES,Manifest.permission.READ_MEDIA_VIDEO) else listOf(Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE))
+	val readPermissionState = rememberMultiplePermissionsState(permissions = if (Build.VERSION.SDK_INT >= 33 ) listOf(Manifest.permission.READ_MEDIA_IMAGES,Manifest.permission.READ_MEDIA_VIDEO) else listOf(Manifest.permission.READ_EXTERNAL_STORAGE))
 	val childNavHostController = rememberNavController()
 	val viewModel = viewModel<ExplorerViewModel>(LocalContext.current as ComponentActivity)
 	TitleColumn(title = "File Explorer", backClick = { navHostController.popBackStack() }) {
@@ -61,7 +61,6 @@ fun ExplorerPage(navHostController: NavHostController) {
 				}
 			}
 		} else {
-			readPermissionState.revokedPermissions
 			val textToShow = if (readPermissionState.shouldShowRationale) {
 				"需要存储权限,请允许"
 			} else {
