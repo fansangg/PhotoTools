@@ -1,5 +1,6 @@
 package com.fansan.exiffix.ui
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -10,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.blankj.utilcode.util.GsonUtils
 import com.fansan.exiffix.ui.common.logd
+import com.fansan.exiffix.ui.entity.AlbumEntity
 import com.fansan.exiffix.ui.entity.ErrorFile
 import com.fansan.exiffix.ui.entity.ErrorFileNavType
 import com.fansan.exiffix.ui.pages.*
@@ -51,10 +53,14 @@ fun ExifFIXNavHost(modifier: Modifier, navController: NavHostController = rememb
 		}
 
 		composable("ALBUM"){
-			remember(navController){
-				navController.getBackStackEntry("home")
-			}
 			AlbumPage(navHostController = navController)
+		}
+
+		composable("PhotoPage/{photoData}",arguments = listOf(navArgument("photoData") {})){
+			val data = it.arguments?.getString("photoData")
+			"data == $data".logd()
+			val albumEntity = GsonUtils.fromJson(data, AlbumEntity::class.java)
+			PhotoPage(navHostController = navController, albumEntity = albumEntity)
 		}
 	}
 }

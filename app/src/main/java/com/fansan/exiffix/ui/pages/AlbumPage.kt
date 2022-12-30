@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
+import android.net.Uri
 import android.os.Build
 import android.os.CancellationSignal
 import android.provider.MediaStore.*
@@ -18,6 +19,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.loader.content.CursorLoader
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.blankj.utilcode.util.GsonUtils
 import com.fansan.exiffix.ui.common.logd
 import com.fansan.exiffix.ui.entity.AlbumEntity
 import com.fansan.exiffix.ui.entity.ImageInfoEntity
@@ -64,7 +67,8 @@ fun AlbumPage(navHostController: NavHostController) {
 			) {
 				items(albumEntityMap.keys.toList()) {
 					AlbumCard(albumEntity = albumEntityMap.getValue(it)) {
-
+						val date = GsonUtils.toJson(albumEntityMap.getValue(it))
+						navHostController.navigate("PhotoPage/${Uri.encode(date)}")
 					}
 				}
 			}
@@ -153,7 +157,7 @@ private fun getAlbums(context: Context): Map<String, AlbumEntity> {
 					taken = dateTaken,
 					lastModified = lastModified,
 					path = imgData,
-					uri = imgUri,
+					uri = imgUri.toString(),
 					size = size
 				)
 				if (!albumMap.containsKey(bucketDisplayName)) {

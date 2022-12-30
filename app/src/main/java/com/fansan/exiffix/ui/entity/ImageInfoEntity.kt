@@ -1,6 +1,5 @@
 package com.fansan.exiffix.ui.entity
 
-import android.net.Uri
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
@@ -10,4 +9,4 @@ import kotlinx.parcelize.Parcelize
  */
 
 @Parcelize
-data class ImageInfoEntity(val displayName:String,val width:Int,val height:Int,val taken:Long,val lastModified:Long,val path:String,val size:Long,val uri:Uri):Parcelable
+data class ImageInfoEntity(val displayName:String,val width:Int,val height:Int,val taken:Long,val lastModified:Long,val path:String,val size:Long,val uri:String):Parcelable
