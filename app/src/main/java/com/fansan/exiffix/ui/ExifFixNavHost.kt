@@ -14,6 +14,7 @@ import com.fansan.exiffix.ui.common.logd
 import com.fansan.exiffix.ui.entity.AlbumEntity
 import com.fansan.exiffix.ui.entity.ErrorFile
 import com.fansan.exiffix.ui.entity.ErrorFileNavType
+import com.fansan.exiffix.ui.entity.ImageInfoEntity
 import com.fansan.exiffix.ui.pages.*
 
 /**
@@ -48,8 +49,8 @@ fun ExifFIXNavHost(modifier: Modifier, navController: NavHostController = rememb
 
 		composable("DETAILSPAGE/{data}", arguments = listOf(navArgument("data") {})) {
 			val data = it.arguments?.getString("data")?:""
-			val entity = GsonUtils.fromJson(data,ErrorFile::class.java)
-			DetailsPage(navHostController = navController, errorFile = entity)
+			val entity = GsonUtils.fromJson(data,ImageInfoEntity::class.java)
+			DetailsPage(navHostController = navController, entity)
 		}
 
 		composable("ALBUM"){
@@ -58,7 +59,6 @@ fun ExifFIXNavHost(modifier: Modifier, navController: NavHostController = rememb
 
 		composable("PhotoPage/{photoData}",arguments = listOf(navArgument("photoData") {})){
 			val data = it.arguments?.getString("photoData")
-			"data == $data".logd()
 			val albumEntity = GsonUtils.fromJson(data, AlbumEntity::class.java)
 			PhotoPage(navHostController = navController, albumEntity = albumEntity)
 		}

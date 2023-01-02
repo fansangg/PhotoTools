@@ -22,13 +22,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.loader.content.CursorLoader
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -36,6 +39,7 @@ import com.blankj.utilcode.util.GsonUtils
 import com.fansan.exiffix.ui.common.logd
 import com.fansan.exiffix.ui.entity.AlbumEntity
 import com.fansan.exiffix.ui.entity.ImageInfoEntity
+import com.fansan.exiffix.ui.viewmodel.AlbumViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.SpacerW
 import com.fansan.exiffix.ui.widgets.TitleColumn
@@ -55,30 +59,36 @@ fun AlbumPage(navHostController: NavHostController) {
 		Manifest.permission.READ_MEDIA_IMAGES,
 		Manifest.permission.READ_MEDIA_VIDEO,Manifest.permission.ACCESS_MEDIA_LOCATION) else listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
 	)
+	val viewModel = viewModel<AlbumViewModel>()
+	viewModel.getAlbums(context)
 	TitleColumn(title = "相册", backClick = { navHostController.popBackStack() }) {
 		if (readPermissionState.allPermissionsGranted){
-			val albumEntityMap = remember {
-				getAlbums(context)
-			}
 			LazyColumn(
 				modifier = Modifier.fillMaxSize(),
 				contentPadding = PaddingValues(vertical = 12.dp),
 				verticalArrangement = Arrangement.spacedBy(12.dp)
 			) {
-				items(albumEntityMap.keys.toList()) {
-					AlbumCard(albumEntity = albumEntityMap.getValue(it)) {
-						val date = GsonUtils.toJson(albumEntityMap.getValue(it))
+				item {
+					val allPhotoEntity = AlbumEntity("所有照片",viewModel.allInfoList)
+					AlbumCard(albumEntity = allPhotoEntity) {
+						val date = GsonUtils.toJson(allPhotoEntity)
+						navHostController.navigate("PhotoPage/${Uri.encode(date)}")
+					}
+				}
+				items(viewModel.albumMap.keys.toList()) {
+					AlbumCard(albumEntity = viewModel.albumMap.getValue(it)) {
+						val date = GsonUtils.toJson(viewModel.albumMap.getValue(it))
 						navHostController.navigate("PhotoPage/${Uri.encode(date)}")
 					}
 				}
 			}
 		}else{
 			val textToShow = if (readPermissionState.shouldShowRationale) {
-				"读取媒体文件需要存储权限,允许该权限才能正常工作"
+				"需要读取照片权限才能正常工作"
 			} else {
-				"读取媒体文件需要存储权限\n请允许此权限"
+				"需要读取照片权限才能正常工作\n请允许此权限"
 			}
-			Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) { 	Text(textToShow)
+			Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) { 	Text(textToShow, textAlign = TextAlign.Center)
 				SpacerH(height = 20.dp)
 				ElevatedButton(onClick = { readPermissionState.launchMultiplePermissionRequest()}) {
 					Text("申请权限")
@@ -100,91 +110,6 @@ fun AlbumPage(navHostController: NavHostController) {
 	})*/
 }
 
-
-private fun getAlbums(context: Context): Map<String, AlbumEntity> {
-	var cursor: Cursor? = null
-	val albumMap = hashMapOf<String, AlbumEntity>()
-	val uri = Images.Media.EXTERNAL_CONTENT_URI
-	val projection = arrayOf(
-		Images.Media.BUCKET_DISPLAY_NAME,
-		Images.Media.DATA,
-		Images.Media.DATE_MODIFIED,
-		Images.Media.DATE_TAKEN,
-		Images.Media._ID,
-		Images.Media.WIDTH,
-		Images.Media.HEIGHT,
-		Images.Media.SIZE,
-		Images.Media.DISPLAY_NAME
-	)
-	try {
-		cursor = CursorLoader(context, uri, projection, null, null, null).loadInBackground()
-		if (cursor != null && cursor.moveToFirst()) {
-			do {
-				val bucketDisplayNameIndex =
-					cursor.getColumnIndexOrThrow(Images.Media.BUCKET_DISPLAY_NAME)
-				val dataIndex = cursor.getColumnIndexOrThrow(Images.Media.DATA)
-				val modifiedIndex = cursor.getColumnIndexOrThrow(Images.Media.DATE_MODIFIED)
-				val dateTakenIndex = cursor.getColumnIndexOrThrow(Images.Media.DATE_TAKEN)
-				val idIndex = cursor.getColumnIndexOrThrow(Images.Media._ID)
-				val titleIndex = cursor.getColumnIndexOrThrow(Images.Media.DISPLAY_NAME)
-				val widthIndex = cursor.getColumnIndexOrThrow(Images.Media.WIDTH)
-				val heightIndex = cursor.getColumnIndexOrThrow(Images.Media.HEIGHT)
-				val sizeIndex = cursor.getColumnIndexOrThrow(Images.Media.SIZE)
-				val bucketDisplayName = cursor.getString(bucketDisplayNameIndex)
-				val imgData = cursor.getString(dataIndex)
-				val lastModified = cursor.getLong(modifiedIndex)
-				val dateTaken = cursor.getLong(dateTakenIndex)
-				val title = cursor.getString(titleIndex)
-				val width = cursor.getInt(widthIndex)
-				val height = cursor.getInt(heightIndex)
-				val size = cursor.getLong(sizeIndex)
-				val id = cursor.getLong(idIndex)
-				val imgUri = ContentUris.withAppendedId(Images.Media.EXTERNAL_CONTENT_URI, id)                /*if (title == "6666.jpg"){
-					val test = File(imgData)
-					val contentValues = ContentValues()
-					val pendingContentValues = ContentValues()
-					pendingContentValues.put(MediaColumns.IS_PENDING,1)
-					context.contentResolver.update(imgUri,pendingContentValues,null,null)
-					contentValues.put(Images.Media.DATE_MODIFIED,System.currentTimeMillis() / 1000)
-					contentValues.put(MediaColumns.IS_PENDING,0)
-					context.contentResolver.update(imgUri,contentValues,null,null)
-				}*/
-
-				val imageInfoEntity = ImageInfoEntity(
-					displayName = title,
-					width = width,
-					height = height,
-					taken = dateTaken,
-					lastModified = lastModified,
-					path = imgData,
-					uri = imgUri.toString(),
-					size = size
-				)
-				if (!albumMap.containsKey(bucketDisplayName)) {
-					albumMap[bucketDisplayName] = AlbumEntity(
-						bucketDisplayName, arrayListOf(imageInfoEntity)
-					)
-				} else {
-					albumMap[bucketDisplayName]?.imgList?.add(imageInfoEntity)
-				}
-			} while (cursor.moveToNext())
-		}
-	} catch (e: Exception) {
-		e.message?.logd()
-	} finally {
-		cursor?.close()
-	}
-	return albumMap
-}
-
-
-private fun getCount(context: Context, name: String): Int {
-	val uri = Images.Media.EXTERNAL_CONTENT_URI
-	val cursor = CursorLoader(
-		context, uri, null, "${MediaColumns.BUCKET_DISPLAY_NAME}=?", arrayOf(name), null
-	).loadInBackground()
-	return if (cursor == null || !cursor.moveToFirst()) 0 else cursor.count
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
