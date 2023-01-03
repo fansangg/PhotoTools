@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.media.MediaScannerConnection
+import android.media.MediaScannerConnection.OnScanCompletedListener
 import android.net.Uri
 import android.provider.MediaStore.Audio.Media
 import android.provider.MediaStore.createWriteRequest
@@ -60,17 +61,21 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 	var lastModifyTime by remember {
 		mutableStateOf(info.lastModified * 1000)
 	}
-	val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartIntentSenderForResult(),
-		                                  onResult = {
-												if (it.resultCode == Activity.RESULT_OK){
-													val result = fixFunc(file,info.taken)
-													if (result)
-														lastModifyTime = info.taken
-													//MediaScannerConnection.scanFile(context,file)
-												}else{
-													ToastUtils.showShort("请允许修改此照片")
-												}
-		                                  })
+	val launcher = rememberLauncherForActivityResult(
+		contract = ActivityResultContracts.StartIntentSenderForResult(),
+		onResult = {
+			if (it.resultCode == Activity.RESULT_OK) {
+				val result = fixFunc(file, info.taken)
+				if (result) lastModifyTime = info.taken
+				MediaScannerConnection.scanFile(
+					context, arrayOf(info.path), null
+				) { _, _ ->
+
+				}
+			} else {
+				ToastUtils.showShort("请允许修改此照片")
+			}
+		})
 
 	val maxWidth = LocalConfiguration.current.screenWidthDp.dp - 24.dp
 	TitleColumn(title = "详情", backClick = { navHostController.popBackStack() }) {
@@ -87,7 +92,11 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 			SpacerW(width = 12.dp)
 			Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
 				Text(text = info.displayName, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-				Text(text = info.path.substring(0,info.path.lastIndexOf("/")), fontSize = 12.sp, color = Color(0xff888888))
+				Text(
+					text = info.path.substring(0, info.path.lastIndexOf("/")),
+					fontSize = 12.sp,
+					color = Color(0xff888888)
+				)
 				Row {
 					Text(
 						text = ConvertUtils.byte2FitMemorySize(info.size, 0),
@@ -153,9 +162,7 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 						fontSize = 16.sp
 					)
 					Text(
-						text = "最后修改日期",
-						fontWeight = FontWeight.SemiBold,
-						fontSize = 16.sp
+						text = "最后修改日期", fontWeight = FontWeight.SemiBold, fontSize = 16.sp
 					)
 				}
 			}
@@ -163,12 +170,13 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 			if (lastModifyTime != info.taken) {
 				SpacerH(height = 24.dp)
 				ElevatedButton(onClick = {
-					if (file.canWrite()){
-						fixFunc(file,info.taken)
-					}else{
-					val editPendingIntent = createWriteRequest(context.contentResolver, listOf(Uri.parse(info.uri)))
-					launcher.launch(IntentSenderRequest.Builder(editPendingIntent).build())
-						}
+					if (file.canWrite()) {
+						fixFunc(file, info.taken)
+					} else {
+						val editPendingIntent =
+							createWriteRequest(context.contentResolver, listOf(Uri.parse(info.uri)))
+						launcher.launch(IntentSenderRequest.Builder(editPendingIntent).build())
+					}
 				}, modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
 					Text(text = "修复")
 				}
@@ -178,18 +186,6 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 	}
 }
 
-private fun fixFunc(file:File,time:Long):Boolean{
+private fun fixFunc(file: File, time: Long): Boolean {
 	return file.setLastModified(time)
 }
-
-//private void updateGallery(String filename)//filename是我们的文件全名，包括后缀哦
-//  {
-//    MediaScannerConnection.scanFile(this,
-//         new String[] { filename }, null,
-//         new MediaScannerConnection.OnScanCompletedListener() {
-//       public void onScanCompleted(String path, Uri uri) {
-//         Log.i("ExternalStorage", "Scanned " + path + ":");
-//         Log.i("ExternalStorage", "-> uri=" + uri);
-//       }
-//     });
-//  }

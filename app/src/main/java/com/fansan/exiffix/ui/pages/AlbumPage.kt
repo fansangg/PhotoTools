@@ -1,8 +1,12 @@
 package com.fansan.exiffix.ui.pages
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore.*
+import android.provider.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,7 +14,7 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -49,6 +53,10 @@ fun AlbumPage(navHostController: NavHostController) {
 	)
 	val viewModel = viewModel<AlbumViewModel>()
 
+	var shouldShowRationaleCount by remember {
+		mutableStateOf(0)
+	}
+
 	if (readPermissionState.allPermissionsGranted) {
 		viewModel.getAlbums(context)
 	}
@@ -84,14 +92,27 @@ fun AlbumPage(navHostController: NavHostController) {
 			}
 		}else{
 			val textToShow = if (readPermissionState.shouldShowRationale) {
+				shouldShowRationaleCount++
 				"需要读取照片权限才能正常工作"
-			} else {
+			}else{
 				"需要读取照片权限才能正常工作\n请允许此权限"
 			}
-			Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) { 	Text(textToShow, textAlign = TextAlign.Center)
-				SpacerH(height = 20.dp)
-				ElevatedButton(onClick = { readPermissionState.launchMultiplePermissionRequest()}) {
+
+			Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) { 	    Text(textToShow, textAlign = TextAlign.Center)
+				SpacerH(height = 40.dp)
+				ElevatedButton(onClick = { readPermissionState.launchMultiplePermissionRequest() }) {
 					Text("申请权限")
+				}
+				SpacerH(height = 20.dp)
+				ElevatedButton(onClick = {
+					(context as Activity).startActivity(
+						Intent(
+							Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+							Uri.fromParts("package", context.packageName, null)
+						)
+					)
+				}) {
+					Text("前往设置")
 				}
 			}
 		}

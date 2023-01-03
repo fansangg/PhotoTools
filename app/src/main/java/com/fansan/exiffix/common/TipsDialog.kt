@@ -36,37 +36,40 @@ fun TipDialog(
 		ElevatedCard(
 			modifier = Modifier
 				.fillMaxWidth(.7f)
-				.aspectRatio(4/3f)
+				.aspectRatio(4 / 3f)
 		) {
-			Box(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+			Box(
+				modifier = Modifier
+					.fillMaxSize()
+					.padding(horizontal = 16.dp)
+			) {
 
 				Icon(
 					painter = rememberVectorPainter(image = icons),
 					contentDescription = "icons",
 					modifier = Modifier
 						.fillMaxSize(.3f)
-						.aspectRatio(1f).align(alignment = Alignment.TopCenter).padding(top = 32.dp)
+						.aspectRatio(1f)
+						.align(alignment = Alignment.TopCenter)
+						.padding(top = 32.dp)
 				)
 
 				Text(
 					text = tips,
-					modifier = Modifier.padding(horizontal = 16.dp).align(alignment = Alignment.Center),
+					modifier = Modifier
+						.padding(horizontal = 16.dp)
+						.align(alignment = Alignment.Center),
 					textAlign = TextAlign.Center
 				)
 
 
-				ElevatedButton(
-					onClick = { click.invoke() },
+				CommonButton(
+					content = "确定",
 					modifier = Modifier
 						.align(alignment = Alignment.BottomCenter)
-						.padding(bottom = 12.dp),
-					contentPadding = PaddingValues(horizontal = 32.dp, vertical = 8.dp),
-					colors = elevatedButtonColors(
-						containerColor = Color(0xff3056f4),
-						contentColor = Color.White
-					)
+						.padding(bottom = 12.dp)
 				) {
-					Text(text = "确定")
+					click.invoke()
 				}
 			}
 		}
