@@ -1,4 +1,4 @@
-package com.fansan.exiffix.ui.entity
+package com.fansan.exiffix.entity
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
@@ -9,7 +9,7 @@ import kotlinx.android.parcel.Parcelize
  */
 
 @Parcelize
-data class ErrorFile(val type:ErrorType,val path:String,val exifDate:String? = null):Parcelable
+data class ErrorFile(val type: ErrorType, val path:String, val exifDate:String? = null):Parcelable
 
 enum class ErrorType{
 	NOEXIF,

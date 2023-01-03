@@ -25,8 +25,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.blankj.utilcode.util.GsonUtils
 import com.blankj.utilcode.util.TimeUtils
-import com.fansan.exiffix.ui.entity.ErrorFile
-import com.fansan.exiffix.ui.entity.ErrorType
+import com.fansan.exiffix.entity.ErrorFile
+import com.fansan.exiffix.entity.ErrorType
 import com.fansan.exiffix.ui.widgets.SpacerW
 import com.fansan.exiffix.ui.widgets.TitleColumn
 import com.google.gson.Gson

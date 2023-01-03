@@ -1,10 +1,6 @@
 package com.fansan.exiffix.ui.pages
 
 import android.net.Uri
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,15 +8,18 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ImageSearch
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -33,14 +32,12 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.blankj.utilcode.util.GsonUtils
-import com.fansan.exiffix.ui.common.logd
-import com.fansan.exiffix.ui.entity.AlbumEntity
-import com.fansan.exiffix.ui.entity.ImageInfoEntity
+import com.fansan.exiffix.common.LoadingStyle2
+import com.fansan.exiffix.common.TipDialog
+import com.fansan.exiffix.entity.ImageInfoEntity
 import com.fansan.exiffix.ui.viewmodel.PhotoPageViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.TitleColumn
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
  *@author  fansan
@@ -48,49 +45,53 @@ import kotlinx.coroutines.withContext
  */
 
 @Composable
-fun PhotoPage(navHostController: NavHostController, albumEntity: AlbumEntity) {
+fun PhotoPage(navHostController: NavHostController, albumName: String) {
 	val viewModel = viewModel<PhotoPageViewModel>()
 
-
-	var showDialog by rememberSaveable(navHostController) {
-		mutableStateOf(true)
-	}
-
+	val context = LocalContext.current
 	LaunchedEffect(key1 = Unit, block = {
-		if (viewModel.scanProgress == 0f){
-			viewModel.totalFileSize = albumEntity.imgList.size
-			withContext(Dispatchers.IO) {
-				viewModel.slipList(albumEntity.imgList)
-			}
+		if (viewModel.allDone.value.not()) {
+			viewModel.getPhotos(context, albumName)
 		}
 	})
 
-	TitleColumn(title = albumEntity.albumName, backClick = { navHostController.popBackStack() }) {
+	val tipDialogShow = rememberSaveable {
+		mutableStateOf(true)
+	}
 
-		if (showDialog) {
-			AnalysisDialog(
-				progress = viewModel.scanProgress,
-				currentIndex = viewModel.currentIndex,
-				total = viewModel.totalFileSize,
-				findSize = viewModel.errorPhotoList.size,
-				currentFileName = viewModel.currentExecFileName
-			){
-				showDialog = false
-			}
-		}else{
-			LazyVerticalGrid(
-				columns = GridCells.Fixed(4),
-				modifier = Modifier.fillMaxSize(),
-				horizontalArrangement = Arrangement.spacedBy(12.dp),
-				verticalArrangement = Arrangement.spacedBy(12.dp),
-				contentPadding = PaddingValues(12.dp)
-			) {
-				items(viewModel.errorPhotoList, key = {it.path}) {
-					ImageItem(info = it){
-						navHostController.navigate("DETAILSPAGE/${Uri.encode(GsonUtils.toJson(it))}")
+	TitleColumn(title = if (albumName == "_allImgs") "所有照片" else albumName,
+	            backClick = { navHostController.popBackStack() }) {
+		if (viewModel.allDone.value) {
+			Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+				LazyVerticalGrid(
+					columns = GridCells.Fixed(4),
+					modifier = Modifier.fillMaxSize(),
+					horizontalArrangement = Arrangement.spacedBy(12.dp),
+					verticalArrangement = Arrangement.spacedBy(12.dp),
+					contentPadding = PaddingValues(12.dp)
+				) {
+					items(viewModel.errorPhotoList, key = { it.path }) {
+						ImageItem(info = it) {
+							navHostController.navigate("DETAILSPAGE/${Uri.encode(GsonUtils.toJson(it))}")
+						}
+					}
+				}
+
+				if (tipDialogShow.value) {
+					val tips =
+						if (viewModel.errorPhotoList.isNotEmpty()) "共找到${viewModel.errorPhotoList.size}张异常照片" else "真棒，所有照片均无异常"
+					val icon =
+						if (viewModel.errorPhotoList.isNotEmpty()) Icons.Default.DoneAll else Icons.Default.ThumbUp
+					TipDialog(
+						tips = tips, icons = icon
+					) {
+						if (viewModel.errorPhotoList.isNotEmpty()) tipDialogShow.value = false
+						else navHostController.popBackStack()
 					}
 				}
 			}
+		} else {
+			LoadingStyle2()
 		}
 	}
 
@@ -159,7 +160,7 @@ fun AnalysisDialog(progress:Float, currentIndex: Int, total: Int, currentFileNam
 }
 
 @Composable
-fun ImageItem(info: ImageInfoEntity,click:() -> Unit) {
+fun ImageItem(info: ImageInfoEntity, click: () -> Unit) {
 	ElevatedCard(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -167,10 +168,10 @@ fun ImageItem(info: ImageInfoEntity,click:() -> Unit) {
 			.clickable(onClick = click)
 	) {
 		AsyncImage(
-			model = ImageRequest.Builder(LocalContext.current).data(info.path).crossfade(true).build(),
+			model = ImageRequest.Builder(LocalContext.current).data(info.path).crossfade(true)
+				.build(),
 			contentDescription = "img",
-			modifier = Modifier
-				.fillMaxSize(),
+			modifier = Modifier.fillMaxSize(),
 			contentScale = ContentScale.Crop,
 			filterQuality = FilterQuality.None
 		)

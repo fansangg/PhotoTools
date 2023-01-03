@@ -10,11 +10,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.blankj.utilcode.util.GsonUtils
-import com.fansan.exiffix.ui.common.logd
-import com.fansan.exiffix.ui.entity.AlbumEntity
-import com.fansan.exiffix.ui.entity.ErrorFile
-import com.fansan.exiffix.ui.entity.ErrorFileNavType
-import com.fansan.exiffix.ui.entity.ImageInfoEntity
+import com.fansan.exiffix.common.logd
+import com.fansan.exiffix.entity.AlbumEntity
+import com.fansan.exiffix.entity.ErrorFile
+import com.fansan.exiffix.entity.ErrorFileNavType
+import com.fansan.exiffix.entity.ImageInfoEntity
 import com.fansan.exiffix.ui.pages.*
 
 /**
@@ -49,7 +49,7 @@ fun ExifFIXNavHost(modifier: Modifier, navController: NavHostController = rememb
 
 		composable("DETAILSPAGE/{data}", arguments = listOf(navArgument("data") {})) {
 			val data = it.arguments?.getString("data")?:""
-			val entity = GsonUtils.fromJson(data,ImageInfoEntity::class.java)
+			val entity = GsonUtils.fromJson(data, ImageInfoEntity::class.java)
 			DetailsPage(navHostController = navController, entity)
 		}
 
@@ -57,10 +57,9 @@ fun ExifFIXNavHost(modifier: Modifier, navController: NavHostController = rememb
 			AlbumPage(navHostController = navController)
 		}
 
-		composable("PhotoPage/{photoData}",arguments = listOf(navArgument("photoData") {})){
-			val data = it.arguments?.getString("photoData")
-			val albumEntity = GsonUtils.fromJson(data, AlbumEntity::class.java)
-			PhotoPage(navHostController = navController, albumEntity = albumEntity)
+		composable("PhotoPage/{albumName}",arguments = listOf(navArgument("albumName") {})){
+			val data = it.arguments?.getString("albumName")?:"_allImgs"
+			PhotoPage(navHostController = navController, albumName = data)
 		}
 	}
 }

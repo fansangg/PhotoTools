@@ -1,4 +1,4 @@
-package com.fansan.exiffix.ui.common
+package com.fansan.exiffix.common
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource

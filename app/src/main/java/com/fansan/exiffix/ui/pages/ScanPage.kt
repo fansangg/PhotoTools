@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.blankj.utilcode.util.GsonUtils
-import com.fansan.exiffix.ui.common.logd
-import com.fansan.exiffix.ui.entity.ErrorFile
+import com.fansan.exiffix.common.logd
+import com.fansan.exiffix.entity.ErrorFile
 import com.fansan.exiffix.ui.viewmodel.ScanViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.TitleColumn

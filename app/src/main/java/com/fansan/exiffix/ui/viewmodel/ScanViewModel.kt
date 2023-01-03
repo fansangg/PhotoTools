@@ -8,8 +8,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.blankj.utilcode.util.FileUtils
 import com.blankj.utilcode.util.TimeUtils
-import com.fansan.exiffix.ui.entity.ErrorFile
-import com.fansan.exiffix.ui.entity.ErrorType
+import com.fansan.exiffix.entity.ErrorFile
+import com.fansan.exiffix.entity.ErrorType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -80,7 +80,7 @@ class ScanViewModel:ViewModel() {
 				if (dataTime != null) {
 					val millis = TimeUtils.string2Millis(dataTime, "yyyy:MM:dd HH:mm:ss")
 					if (file.lastModified() != millis) {
-						matchFileList.add(ErrorFile(ErrorType.DATENOMATCH, file.absolutePath,TimeUtils.millis2String(millis)))
+						matchFileList.add(ErrorFile(ErrorType.DATENOMATCH, file.absolutePath, TimeUtils.millis2String(millis)))
 					}
 				} else {
 					matchFileList.add(ErrorFile(ErrorType.NOEXIF, file.absolutePath))

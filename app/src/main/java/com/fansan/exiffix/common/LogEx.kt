@@ -1,4 +1,4 @@
-package com.fansan.exiffix.ui.common
+package com.fansan.exiffix.common
 
 import android.annotation.SuppressLint
 import com.blankj.utilcode.util.LogUtils

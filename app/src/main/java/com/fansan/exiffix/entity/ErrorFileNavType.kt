@@ -1,4 +1,4 @@
-package com.fansan.exiffix.ui.entity
+package com.fansan.exiffix.entity
 
 import android.os.Bundle
 import androidx.navigation.NavType
