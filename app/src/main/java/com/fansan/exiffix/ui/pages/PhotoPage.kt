@@ -41,6 +41,7 @@ import coil.request.ImageRequest
 import com.blankj.utilcode.util.GsonUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.fansan.exiffix.common.CommonButton
+import com.fansan.exiffix.common.FixLoading
 import com.fansan.exiffix.common.LoadingStyle2
 import com.fansan.exiffix.common.TipDialog
 import com.fansan.exiffix.entity.ImageInfoEntity
@@ -65,7 +66,7 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 		}
 	})
 
-	val  inProgress = remember{
+	val inProgress = remember {
 		derivedStateOf {
 			viewModel.scanProgress > 0 && viewModel.scanProgress < 1f
 		}
@@ -98,7 +99,9 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 					modifier = Modifier.fillMaxSize(),
 					horizontalArrangement = Arrangement.spacedBy(12.dp),
 					verticalArrangement = Arrangement.spacedBy(12.dp),
-					contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 34.dp)
+					contentPadding = PaddingValues(
+						start = 12.dp, end = 12.dp, top = 12.dp, bottom = 34.dp
+					)
 				) {
 					items(viewModel.errorPhotoList, key = { it.path }) {
 						ImageItem(info = it) {
@@ -115,35 +118,54 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 					}
 				}
 
-				if (viewModel.errorPhotoList.isNotEmpty()){
-					CommonButton(content = "批量修复", modifier = Modifier
-						.align(alignment = Alignment.BottomCenter)
-						.padding(bottom = 30.dp)) {
+				if (viewModel.errorPhotoList.isNotEmpty()) {
+					CommonButton(
+						content = "批量修复",
+						modifier = Modifier
+							.align(alignment = Alignment.BottomCenter)
+							.padding(bottom = 30.dp)
+					) {
 
 						showWraningTips.value = true
 					}
 				}
 
-				if (showWraningTips.value){
-					TipDialog(tips = "查询结果内所有照片最后修改日期将修复为照片的拍摄日期，是否继续执行此操作？", confirmText = "继续执行", showCancel = true, icons = Icons.Default.Warning, click = {
-						showWraningTips.value = false
-						val uriList = viewModel.errorPhotoList.map {
-							Uri.parse(it.uri)
-						}
-						val intent = MediaStore.createWriteRequest(context.contentResolver,uriList)
-						launcher.launch(IntentSenderRequest.Builder(intent).build())
-					}, cancelClick = {
-						showWraningTips.value = false
-					})
+				if (showWraningTips.value) {
+					TipDialog(tips = "当前结果内所有照片最后修改日期将修复为照片的拍摄日期，是否继续执行此操作？",
+					          confirmText = "继续执行",
+					          showCancel = true,
+					          icons = Icons.Default.Warning,
+					          click = {
+						          showWraningTips.value = false
+						          val uriList = viewModel.errorPhotoList.map {
+							          Uri.parse(it.uri)
+						          }
+						          val intent = MediaStore.createWriteRequest(
+							          context.contentResolver, uriList
+						          )
+						          launcher.launch(IntentSenderRequest.Builder(intent).build())
+					          },
+					          cancelClick = {
+						          showWraningTips.value = false
+					          })
 				}
 
-				if (inProgress.value){
-					LoadingStyle2(content = "${viewModel.currentIndex}/${viewModel.errorPhotoList.size}")
+				if (inProgress.value || viewModel.allFixDone.value) {
+					FixLoading(
+						isDone = viewModel.allFixDone.value,
+						content = "${viewModel.currentIndex}/${viewModel.errorPhotoList.size}\n${viewModel.currentExecFileName}",
+						successCount = viewModel.successFileList.size,
+						errorCount = viewModel.failedCount
+					) {
+						viewModel.scanFile(context)
+						viewModel.getPhotos(context,albumName)
+						viewModel.allFixDone.value = false
+					}
 				}
 
 				if (tipDialogShow.value) {
 					val tips =
-						if (viewModel.errorPhotoList.isNotEmpty()) "共找到${viewModel.errorPhotoList.size}张异常照片" else "真棒，所有照片均无异常"
+						if (viewModel.errorPhotoList.isNotEmpty()) "发现${viewModel.errorPhotoList.size}张异常照片" else "真棒，所有照片均无异常"
 					val icon =
 						if (viewModel.errorPhotoList.isNotEmpty()) Icons.Default.DoneAll else Icons.Default.ThumbUp
 					TipDialog(tips = tips, icons = icon, click = {
@@ -161,11 +183,18 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 
 
 @Composable
-fun AnalysisDialog(progress:Float, currentIndex: Int, total: Int, currentFileName: String,findSize:Int,confrimClick:() -> Unit) {
+fun AnalysisDialog(
+	progress: Float,
+	currentIndex: Int,
+	total: Int,
+	currentFileName: String,
+	findSize: Int,
+	confrimClick: () -> Unit
+) {
 	var doneFlag by rememberSaveable {
 		mutableStateOf(false)
 	}
-	if (progress >=1){
+	if (progress >= 1) {
 		doneFlag = true
 	}
 	Box(
@@ -186,9 +215,9 @@ fun AnalysisDialog(progress:Float, currentIndex: Int, total: Int, currentFileNam
 				Text(text = if (progress >= 1) "完成" else "正在分析中...", fontSize = 22.sp)
 				SpacerH(height = 12.dp)
 				Box(modifier = Modifier.fillMaxSize(.75f), contentAlignment = Alignment.Center) {
-					if (doneFlag){
+					if (doneFlag) {
 						Text(text = "共发现${findSize}张缺少日期或者不匹配的照片", textAlign = TextAlign.Center)
-					}else{
+					} else {
 						Box(contentAlignment = Alignment.Center) {
 							CircularProgressIndicator(
 								progress = progress,
@@ -207,7 +236,7 @@ fun AnalysisDialog(progress:Float, currentIndex: Int, total: Int, currentFileNam
 					ElevatedButton(onClick = { confrimClick.invoke() }) {
 						Text(text = "查看")
 					}
-				}else {
+				} else {
 					Text(
 						text = currentFileName,
 						fontSize = 16.sp,
@@ -244,8 +273,12 @@ fun ImageItem(info: ImageInfoEntity, click: () -> Unit) {
 @Preview
 fun PreviewDialog() {
 	AnalysisDialog(
-		progress = 1f , currentIndex = 1, total = 100, findSize = 10, currentFileName = "hahahhahahahsdhahda.jpg"
-	){
+		progress = 1f,
+		currentIndex = 1,
+		total = 100,
+		findSize = 10,
+		currentFileName = "hahahhahahahsdhahda.jpg"
+	) {
 
 	}
 }

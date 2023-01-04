@@ -32,7 +32,7 @@ fun MainPage(navHostController: NavHostController) {
 	val itemList = remember {
 		listOf(
 			MainFuncBean("照片日期修复", R.mipmap.date),
-			MainFuncBean("修改Exif日期", R.mipmap.exif),
+			MainFuncBean("修改照片Exif日期", R.mipmap.exif),
 			MainFuncBean("批量修改文件名", R.mipmap.file),
 		)
 	}

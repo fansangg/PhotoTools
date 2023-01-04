@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.fansan.exiffix.ui.widgets.SpacerH
+import com.fansan.exiffix.ui.widgets.SpacerW
 
 /**
  *@author  fansan
@@ -36,7 +37,7 @@ fun TipDialog(
 		ElevatedCard(
 			modifier = Modifier
 				.fillMaxWidth(.7f)
-				.aspectRatio(4 / 3f)
+				.aspectRatio(4 / 3.5f)
 		) {
 			Box(
 				modifier = Modifier
@@ -64,18 +65,22 @@ fun TipDialog(
 				)
 
 
-				Row(modifier = Modifier.fillMaxWidth().align(alignment = Alignment.BottomCenter)
-					.padding(bottom = 12.dp), horizontalArrangement = Arrangement.SpaceAround) {
+				Row(modifier = Modifier
+					.fillMaxWidth()
+					.align(alignment = Alignment.BottomCenter)
+					.padding(bottom = 12.dp), horizontalArrangement = Arrangement.Center) {
 
-					if (showCancel)
+					if (showCancel) {
 						CommonButton(
-							content = "取消"
+							content = "取消", modifier = Modifier.weight(.5f)
 						) {
 							cancelClick.invoke()
 						}
+						SpacerW(width = 12.dp)
+					}
 
 					CommonButton(
-						content = confirmText
+						content = confirmText,modifier = Modifier.weight(.5f)
 					) {
 						click.invoke()
 					}

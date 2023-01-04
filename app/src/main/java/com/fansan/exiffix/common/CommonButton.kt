@@ -20,7 +20,7 @@ fun CommonButton(content:String,modifier: Modifier = Modifier,click:() -> Unit){
 	Button(
 		onClick = { click.invoke() },
 		modifier = modifier,
-		contentPadding = PaddingValues(horizontal = 32.dp, vertical = 8.dp),
+		contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
 		colors = ButtonDefaults.buttonColors(
 			containerColor = if (isSystemInDarkTheme()) Color(0xff3056f4) else Black11,
 			contentColor = Color.White

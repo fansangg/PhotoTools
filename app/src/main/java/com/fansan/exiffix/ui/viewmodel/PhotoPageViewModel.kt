@@ -3,6 +3,7 @@ package com.fansan.exiffix.ui.viewmodel
 import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.Context
+import android.media.MediaScannerConnection
 import android.provider.MediaStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -33,16 +34,17 @@ import kotlin.math.ceil
 class PhotoPageViewModel:ViewModel() {
 
 	var scanProgress by mutableStateOf(0f)
-	var currentIndex by mutableStateOf(0)
+	var currentIndex by mutableStateOf(1)
 	var currentExecFileName = ""
 	var successFileList = mutableListOf<String>()
 	var failedCount = 0
 	val errorPhotoList = mutableStateListOf<ImageInfoEntity>()
 	private val mutex = Mutex()
 	val allDone = mutableStateOf(false)
+	val allFixDone = mutableStateOf(false)
 
-	@SuppressLint("RestrictedApi")
 	fun getPhotos(context: Context, name: String) {
+		errorPhotoList.clear()
 		val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
 		val projection = arrayOf(
 			MediaStore.Images.Media.DATA,
@@ -78,7 +80,7 @@ class PhotoPageViewModel:ViewModel() {
 
 						val taken = it.getLong(takenIndex)
 						val modified = it.getLong(modifiedIndex)
-						if (taken <= 0L || modified * 1000 == taken)
+						if (taken <= 0L || abs(modified * 1000 - taken) < 1500 )
 							continue
 						val data = it.getString(dataIndex)
 						val added = it.getLong(addedIndex)
@@ -103,7 +105,7 @@ class PhotoPageViewModel:ViewModel() {
 	}
 
 	private suspend fun slipList() {
-		if (errorPhotoList.size > 100) {
+		if (errorPhotoList.size > 500) {
 			val result = ceil(errorPhotoList.size / 5.0).toInt()
 			val newList = errorPhotoList.chunked(result)
 			newList.forEach {
@@ -129,9 +131,20 @@ class PhotoPageViewModel:ViewModel() {
 				if (result)
 					successFileList.add(entity.path)
 				else failedCount++
+				if (currentIndex >= errorPhotoList.size){
+					allFixDone.value = true
+				}
 			}
-			delay(800)
+			//delay(3000)
 			//yield()
+		}
+	}
+
+	fun scanFile(context: Context){
+		MediaScannerConnection.scanFile(context,successFileList.toTypedArray(),null){
+			path,uri ->
+
+			"success -- path == $path,uri == $uri".logd()
 		}
 	}
 
