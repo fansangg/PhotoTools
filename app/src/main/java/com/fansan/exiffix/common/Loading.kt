@@ -2,18 +2,20 @@ package com.fansan.exiffix.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.*
 import com.fansan.exiffix.ui.widgets.SpacerH
@@ -55,7 +57,7 @@ fun LoadingStyle1() {
 }
 
 @Composable
-fun LoadingStyle2() {
+fun LoadingStyle2(content: String = "正在加载中...") {
 	val json = if (isSystemInDarkTheme()) "anim/Chicken_dark.json" else "anim/Chicken.json"
 	Box(
 		modifier = Modifier
@@ -77,9 +79,8 @@ fun LoadingStyle2() {
 						progress = { lottieState },
 						modifier = Modifier.size(80.dp)
 					)
-					SpacerH(height = 12.dp)
 
-					Text(text = "正在加载中...")
+					Text(text = content, textAlign = TextAlign.Center, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp))
 				}
 			}
 		}

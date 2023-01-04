@@ -11,12 +11,14 @@ import android.provider.MediaStore.createWriteRequest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EditCalendar
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,6 +39,7 @@ import com.blankj.utilcode.util.FileUtils
 import com.blankj.utilcode.util.ImageUtils
 import com.blankj.utilcode.util.TimeUtils
 import com.blankj.utilcode.util.ToastUtils
+import com.fansan.exiffix.common.CommonButton
 import com.fansan.exiffix.common.logd
 import com.fansan.exiffix.entity.ErrorFile
 import com.fansan.exiffix.entity.ImageInfoEntity
@@ -169,7 +172,7 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 
 			if (lastModifyTime != info.taken) {
 				SpacerH(height = 24.dp)
-				ElevatedButton(onClick = {
+				CommonButton(content = "修复",modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
 					if (file.canWrite()) {
 						fixFunc(file, info.taken)
 					} else {
@@ -177,8 +180,6 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 							createWriteRequest(context.contentResolver, listOf(Uri.parse(info.uri)))
 						launcher.launch(IntentSenderRequest.Builder(editPendingIntent).build())
 					}
-				}, modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-					Text(text = "修复")
 				}
 			}
 		}

@@ -1,22 +1,22 @@
 package com.fansan.exiffix.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.ViewCompat
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private val DarkColorScheme = darkColorScheme(
-	primary = Purple80, secondary = PurpleGrey80, tertiary = Pink80
+	primary = Black24,
+	onPrimary = White850,
+	secondary = Gray,
+	onSecondary = White850,
+	surface = Black24,
+	onSurface = White850,
+	background = Black11,
+	onBackground = White850,
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -36,8 +36,9 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun ExifFIXTheme(
 	darkTheme: Boolean = isSystemInDarkTheme(), // Dynamic color is available on Android 12+
-	dynamicColor: Boolean = true, content: @Composable () -> Unit
+	dynamicColor: Boolean = false, content: @Composable () -> Unit
 ) {
+	val systemUiController = rememberSystemUiController()
 	val colorScheme = when {
 		dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
 			val context = LocalContext.current
@@ -46,12 +47,9 @@ fun ExifFIXTheme(
 		darkTheme -> DarkColorScheme
 		else -> LightColorScheme
 	}
-	val view = LocalView.current
-	if (!view.isInEditMode) {
-		SideEffect {
-			(view.context as Activity).window.statusBarColor = colorScheme.primary.toArgb()
-			ViewCompat.getWindowInsetsController(view)?.isAppearanceLightStatusBars = darkTheme
-		}
+
+	SideEffect {
+		systemUiController.setStatusBarColor(colorScheme.primary)
 	}
 
 	MaterialTheme(

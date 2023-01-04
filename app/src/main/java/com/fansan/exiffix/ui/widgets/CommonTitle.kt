@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fansan.exiffix.common.noRippleClick
+import com.fansan.exiffix.ui.theme.White850
 
 /**
  *@author  fansan
@@ -51,15 +52,13 @@ fun CommonTitle(title: String, modifier: Modifier = Modifier, withBackIcon:Boole
 					modifier = Modifier
 						.align(alignment = Alignment.Center)
 						.padding(horizontal = 16.dp),
-					colorFilter = if (isSystemInDarkTheme()) ColorFilter.tint(Color.Black) else ColorFilter.tint(Color.White)
+					colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) White850 else Color.White)
 				)
 			}
 
 		Text(
 			text = title,
-			color = MaterialTheme.colorScheme.onPrimary,
-			fontSize = 18.sp,
-			fontWeight = FontWeight.SemiBold,
+			style = MaterialTheme.typography.titleLarge.copy(color = if (isSystemInDarkTheme()) White850 else Color.White, fontSize = 18.sp),
 			modifier = Modifier.align(alignment = Alignment.Center)
 		)
 	}

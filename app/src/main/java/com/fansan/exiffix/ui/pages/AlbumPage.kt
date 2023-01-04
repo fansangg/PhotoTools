@@ -10,7 +10,6 @@ import android.provider.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -26,8 +25,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.airbnb.lottie.compose.*
+import com.fansan.exiffix.common.CommonButton
+import com.fansan.exiffix.common.EmptyDir
 import com.fansan.exiffix.common.LoadingStyle2
 import com.fansan.exiffix.entity.NewAlbumEntity
+import com.fansan.exiffix.router.Router
 import com.fansan.exiffix.ui.viewmodel.AlbumViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.SpacerW
@@ -76,13 +79,13 @@ fun AlbumPage(navHostController: NavHostController) {
 							val allPhotoEntity =
 								NewAlbumEntity("所有照片", viewModel.firstImg, viewModel.allImageCount)
 							AlbumCard(albumEntity = allPhotoEntity) {
-								navHostController.navigate("PhotoPage/_allImgs")
+								navHostController.navigate("${Router.photoPage}/_allImgs")
 							}
 						}
 						items(viewModel.newAlbumMap.keys.toList()) {
 							val entity = viewModel.newAlbumMap.getValue(it)
 							AlbumCard(albumEntity = entity) {
-								navHostController.navigate("PhotoPage/${entity.albumName}")
+								navHostController.navigate("${Router.photoPage}/${entity.albumName}")
 							}
 						}
 					}
@@ -90,30 +93,42 @@ fun AlbumPage(navHostController: NavHostController) {
 			} else {
 				LoadingStyle2()
 			}
-		}else{
+		} else {
 			val textToShow = if (readPermissionState.shouldShowRationale) {
 				shouldShowRationaleCount++
 				"需要读取照片权限才能正常工作"
-			}else{
+			} else {
 				"需要读取照片权限才能正常工作\n请允许此权限"
 			}
 
-			Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) { 	    Text(textToShow, textAlign = TextAlign.Center)
+			Column(
+				modifier = Modifier.fillMaxSize(),
+				verticalArrangement = Arrangement.Center,
+				horizontalAlignment = Alignment.CenterHorizontally
+			) {
+				val composition by rememberLottieComposition(spec = LottieCompositionSpec.Asset("anim/permission.json"))
+				val lottieState by animateLottieCompositionAsState(
+					composition = composition, iterations = 1, isPlaying = true
+				)
+				LottieAnimation(
+					composition = composition,
+					progress = { lottieState },
+					modifier = Modifier.size(160.dp)
+				)
+				SpacerH(height = 12.dp)
+				Text(textToShow, textAlign = TextAlign.Center)
 				SpacerH(height = 40.dp)
-				ElevatedButton(onClick = { readPermissionState.launchMultiplePermissionRequest() }) {
-					Text("申请权限")
-				}
+				CommonButton(content = "申请权限",
+				             click = { readPermissionState.launchMultiplePermissionRequest() })
 				SpacerH(height = 20.dp)
-				ElevatedButton(onClick = {
+				CommonButton(content = "前往设置", click = {
 					(context as Activity).startActivity(
 						Intent(
 							Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
 							Uri.fromParts("package", context.packageName, null)
 						)
 					)
-				}) {
-					Text("前往设置")
-				}
+				})
 			}
 		}
 	}

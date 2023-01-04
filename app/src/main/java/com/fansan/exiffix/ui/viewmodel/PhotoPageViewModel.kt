@@ -10,10 +10,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.TimeUtils
 import com.fansan.exiffix.common.logd
 import com.fansan.exiffix.entity.ImageInfoEntity
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -30,9 +33,10 @@ import kotlin.math.ceil
 class PhotoPageViewModel:ViewModel() {
 
 	var scanProgress by mutableStateOf(0f)
-	var currentIndex = 0
+	var currentIndex by mutableStateOf(0)
 	var currentExecFileName = ""
-	var totalFileSize = 0
+	var successFileList = mutableListOf<String>()
+	var failedCount = 0
 	val errorPhotoList = mutableStateListOf<ImageInfoEntity>()
 	private val mutex = Mutex()
 	val allDone = mutableStateOf(false)
@@ -74,7 +78,7 @@ class PhotoPageViewModel:ViewModel() {
 
 						val taken = it.getLong(takenIndex)
 						val modified = it.getLong(modifiedIndex)
-						if (taken != 0L && modified * 1000 == taken)
+						if (taken <= 0L || modified * 1000 == taken)
 							continue
 						val data = it.getString(dataIndex)
 						val added = it.getLong(addedIndex)
@@ -98,45 +102,42 @@ class PhotoPageViewModel:ViewModel() {
 		//slipList()
 	}
 
-	suspend fun slipList() {
+	private suspend fun slipList() {
 		if (errorPhotoList.size > 100) {
 			val result = ceil(errorPhotoList.size / 5.0).toInt()
 			val newList = errorPhotoList.chunked(result)
 			newList.forEach {
 				with(CoroutineScope(coroutineContext)) {
 					launch {
-						analysisFiles(it)
+						fixLastModified(it)
 					}
 				}
 			}
 		} else {
-			analysisFiles(errorPhotoList)
+			fixLastModified(errorPhotoList)
 		}
 	}
 
-	private suspend fun analysisFiles(list: List<ImageInfoEntity>) {
+	private suspend fun fixLastModified(list: List<ImageInfoEntity>) {
 		list.forEach { entity ->
 			val file = File(entity.path)
+			val result = file.setLastModified(entity.taken)
 			mutex.withLock {
 				currentIndex++
 				currentExecFileName = entity.displayName
-				scanProgress = currentIndex / totalFileSize.toFloat()
+				scanProgress = currentIndex / errorPhotoList.size.toFloat()
+				if (result)
+					successFileList.add(entity.path)
+				else failedCount++
 			}
-			try {
-				val exifInterface = ExifInterface(file)
-				val dataTime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME)
-				if (dataTime != null) {
-					val millis = TimeUtils.string2Millis(dataTime, "yyyy:MM:dd HH:mm:ss")
-					if (file.lastModified() != millis) {
-						errorPhotoList.add(entity)
-					}
-				} else {
-					errorPhotoList.add(entity)
-				}
-			} catch (e: Exception) {
-				errorPhotoList.add(entity)
-			}
+			delay(800)
 			//yield()
+		}
+	}
+
+	fun fixAll(){
+		viewModelScope.launch(Dispatchers.IO){
+			slipList()
 		}
 	}
 }

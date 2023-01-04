@@ -8,10 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -23,7 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.airbnb.lottie.compose.*
 import com.blankj.utilcode.util.TimeUtils
+import com.fansan.exiffix.common.EmptyDir
 import com.fansan.exiffix.ui.viewmodel.ExplorerViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.SpacerW
@@ -179,22 +178,5 @@ fun FileItemCard(file: File, itemClick: () -> Unit) {
 			}
 
 		}
-	}
-}
-
-@Composable
-fun EmptyDir(modifier: Modifier,tips:String = "Empty Folder") {
-	Column(
-		modifier = modifier,
-		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.Center
-	) {
-		Icon(
-			painter = rememberVectorPainter(image = Icons.Default.PsychologyAlt),
-			contentDescription = "empty",
-			modifier = Modifier.size(60.dp)
-		)
-		SpacerH(height = 8.dp)
-		Text(text = tips, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
 	}
 }

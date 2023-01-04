@@ -24,8 +24,8 @@ import com.fansan.exiffix.ui.widgets.SpacerH
 
 @Composable
 fun TipDialog(
-	tips: String, icons: ImageVector = Icons.Default.DoneAll, click: () -> Unit
-) {
+	tips: String,confirmText:String = "确定" , icons: ImageVector = Icons.Default.DoneAll, click: () -> Unit
+,showCancel:Boolean = false,cancelClick:() -> Unit = {}) {
 	Box(
 		modifier = Modifier
 			.fillMaxSize()
@@ -59,17 +59,26 @@ fun TipDialog(
 					modifier = Modifier
 						.padding(horizontal = 16.dp)
 						.align(alignment = Alignment.Center),
-					textAlign = TextAlign.Center
+					textAlign = TextAlign.Center,
+					style = MaterialTheme.typography.bodyMedium
 				)
 
 
-				CommonButton(
-					content = "确定",
-					modifier = Modifier
-						.align(alignment = Alignment.BottomCenter)
-						.padding(bottom = 12.dp)
-				) {
-					click.invoke()
+				Row(modifier = Modifier.fillMaxWidth().align(alignment = Alignment.BottomCenter)
+					.padding(bottom = 12.dp), horizontalArrangement = Arrangement.SpaceAround) {
+
+					if (showCancel)
+						CommonButton(
+							content = "取消"
+						) {
+							cancelClick.invoke()
+						}
+
+					CommonButton(
+						content = confirmText
+					) {
+						click.invoke()
+					}
 				}
 			}
 		}

@@ -15,6 +15,7 @@ import com.fansan.exiffix.entity.AlbumEntity
 import com.fansan.exiffix.entity.ErrorFile
 import com.fansan.exiffix.entity.ErrorFileNavType
 import com.fansan.exiffix.entity.ImageInfoEntity
+import com.fansan.exiffix.router.Router
 import com.fansan.exiffix.ui.pages.*
 
 /**
@@ -47,17 +48,17 @@ fun ExifFIXNavHost(modifier: Modifier, navController: NavHostController = rememb
 			)
 		}
 
-		composable("DETAILSPAGE/{data}", arguments = listOf(navArgument("data") {})) {
+		composable("${Router.details}/{data}", arguments = listOf(navArgument("data") {})) {
 			val data = it.arguments?.getString("data")?:""
 			val entity = GsonUtils.fromJson(data, ImageInfoEntity::class.java)
 			DetailsPage(navHostController = navController, entity)
 		}
 
-		composable("ALBUM"){
+		composable(Router.album){
 			AlbumPage(navHostController = navController)
 		}
 
-		composable("PhotoPage/{albumName}",arguments = listOf(navArgument("albumName") {})){
+		composable("${Router.photoPage}/{albumName}",arguments = listOf(navArgument("albumName") {})){
 			val data = it.arguments?.getString("albumName")?:"_allImgs"
 			PhotoPage(navHostController = navController, albumName = data)
 		}

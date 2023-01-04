@@ -1,6 +1,12 @@
 package com.fansan.exiffix.ui.pages
 
+import android.app.Activity
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +16,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
@@ -32,9 +39,12 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.blankj.utilcode.util.GsonUtils
+import com.blankj.utilcode.util.ToastUtils
+import com.fansan.exiffix.common.CommonButton
 import com.fansan.exiffix.common.LoadingStyle2
 import com.fansan.exiffix.common.TipDialog
 import com.fansan.exiffix.entity.ImageInfoEntity
+import com.fansan.exiffix.router.Router
 import com.fansan.exiffix.ui.viewmodel.PhotoPageViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.TitleColumn
@@ -55,6 +65,26 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 		}
 	})
 
+	val  inProgress = remember{
+		derivedStateOf {
+			viewModel.scanProgress > 0 && viewModel.scanProgress < 1f
+		}
+	}
+
+	val launcher = rememberLauncherForActivityResult(
+		contract = ActivityResultContracts.StartIntentSenderForResult(),
+		onResult = {
+			if (it.resultCode == Activity.RESULT_OK) {
+				viewModel.fixAll()
+			} else {
+				ToastUtils.showShort("请允许修改这些照片")
+			}
+		})
+
+	val showWraningTips = rememberSaveable {
+		mutableStateOf(false)
+	}
+
 	val tipDialogShow = rememberSaveable {
 		mutableStateOf(true)
 	}
@@ -62,19 +92,53 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 	TitleColumn(title = if (albumName == "_allImgs") "所有照片" else albumName,
 	            backClick = { navHostController.popBackStack() }) {
 		if (viewModel.allDone.value) {
-			Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+			Box(modifier = Modifier.fillMaxSize()) {
 				LazyVerticalGrid(
 					columns = GridCells.Fixed(4),
 					modifier = Modifier.fillMaxSize(),
 					horizontalArrangement = Arrangement.spacedBy(12.dp),
 					verticalArrangement = Arrangement.spacedBy(12.dp),
-					contentPadding = PaddingValues(12.dp)
+					contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 34.dp)
 				) {
 					items(viewModel.errorPhotoList, key = { it.path }) {
 						ImageItem(info = it) {
-							navHostController.navigate("DETAILSPAGE/${Uri.encode(GsonUtils.toJson(it))}")
+							navHostController.navigate(
+								"${Router.details}/${
+									Uri.encode(
+										GsonUtils.toJson(
+											it
+										)
+									)
+								}"
+							)
 						}
 					}
+				}
+
+				if (viewModel.errorPhotoList.isNotEmpty()){
+					CommonButton(content = "批量修复", modifier = Modifier
+						.align(alignment = Alignment.BottomCenter)
+						.padding(bottom = 30.dp)) {
+
+						showWraningTips.value = true
+					}
+				}
+
+				if (showWraningTips.value){
+					TipDialog(tips = "查询结果内所有照片最后修改日期将修复为照片的拍摄日期，是否继续执行此操作？", confirmText = "继续执行", showCancel = true, icons = Icons.Default.Warning, click = {
+						showWraningTips.value = false
+						val uriList = viewModel.errorPhotoList.map {
+							Uri.parse(it.uri)
+						}
+						val intent = MediaStore.createWriteRequest(context.contentResolver,uriList)
+						launcher.launch(IntentSenderRequest.Builder(intent).build())
+					}, cancelClick = {
+						showWraningTips.value = false
+					})
+				}
+
+				if (inProgress.value){
+					LoadingStyle2(content = "${viewModel.currentIndex}/${viewModel.errorPhotoList.size}")
 				}
 
 				if (tipDialogShow.value) {
@@ -82,12 +146,10 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 						if (viewModel.errorPhotoList.isNotEmpty()) "共找到${viewModel.errorPhotoList.size}张异常照片" else "真棒，所有照片均无异常"
 					val icon =
 						if (viewModel.errorPhotoList.isNotEmpty()) Icons.Default.DoneAll else Icons.Default.ThumbUp
-					TipDialog(
-						tips = tips, icons = icon
-					) {
+					TipDialog(tips = tips, icons = icon, click = {
 						if (viewModel.errorPhotoList.isNotEmpty()) tipDialogShow.value = false
 						else navHostController.popBackStack()
-					}
+					})
 				}
 			}
 		} else {
