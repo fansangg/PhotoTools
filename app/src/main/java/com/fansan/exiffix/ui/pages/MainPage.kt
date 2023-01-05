@@ -63,11 +63,24 @@ fun MainPage(navHostController: NavHostController) {
 fun FunctionItem(modifier: Modifier,bean:MainFuncBean,click: () -> Unit) {
 	ElevatedCard(modifier = modifier, onClick = click) {
 		Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceEvenly) {
-			Box(modifier = Modifier.fillMaxWidth().weight(1f).background(color = MaterialTheme.colorScheme.secondary), contentAlignment = Alignment.Center){
+			Box(modifier = Modifier
+				.fillMaxWidth()
+				.weight(1f)
+				.background(color = MaterialTheme.colorScheme.secondary), contentAlignment = Alignment.Center){
 				Image(painter = painterResource(id = bean.image), contentDescription = "icon")
 			}
 			Text(text = bean.name, modifier = Modifier.padding(vertical = 12.dp))
 		}
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RenameFilesBottomSheet(){
+	ModalNavigationDrawer(drawerContent = {
+
+	}) {
+
 	}
 }
 

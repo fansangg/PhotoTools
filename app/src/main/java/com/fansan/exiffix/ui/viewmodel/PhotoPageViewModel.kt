@@ -80,7 +80,7 @@ class PhotoPageViewModel:ViewModel() {
 
 						val taken = it.getLong(takenIndex)
 						val modified = it.getLong(modifiedIndex)
-						if (taken <= 0L || abs(modified * 1000 - taken) < 1500 )
+						if (taken <= 0L || abs(modified * 1000 - taken) < 1000 )
 							continue
 						val data = it.getString(dataIndex)
 						val added = it.getLong(addedIndex)
@@ -105,7 +105,7 @@ class PhotoPageViewModel:ViewModel() {
 	}
 
 	private suspend fun slipList() {
-		if (errorPhotoList.size > 500) {
+		if (errorPhotoList.size > 300) {
 			val result = ceil(errorPhotoList.size / 5.0).toInt()
 			val newList = errorPhotoList.chunked(result)
 			newList.forEach {
@@ -142,10 +142,9 @@ class PhotoPageViewModel:ViewModel() {
 
 	fun scanFile(context: Context){
 		MediaScannerConnection.scanFile(context,successFileList.toTypedArray(),null){
-			path,uri ->
-
-			"success -- path == $path,uri == $uri".logd()
+			path,_ ->
 		}
+		errorPhotoList.removeAll(errorPhotoList.filter { successFileList.contains(it.path) })
 	}
 
 	fun fixAll(){

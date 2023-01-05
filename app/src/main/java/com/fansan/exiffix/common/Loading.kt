@@ -1,5 +1,6 @@
 package com.fansan.exiffix.common
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -111,12 +112,14 @@ fun FixLoading(
 			.background(color = Color(0x66000000)),
 		contentAlignment = Alignment.Center
 	) {
-		ElevatedCard(modifier = Modifier.fillMaxWidth(0.65f).aspectRatio(4/3.5f)) {
+		ElevatedCard(modifier = Modifier
+			.fillMaxWidth(0.65f)
+			.aspectRatio(4 / 3.5f)) {
 			val composition by rememberLottieComposition(spec = LottieCompositionSpec.Asset(json))
 			val lottieState by animateLottieCompositionAsState(
 				composition = composition,
 				iterations = LottieConstants.IterateForever,
-				isPlaying = true
+				isPlaying = !isDone
 			)
 			Column(
 				modifier = Modifier.fillMaxSize(),
@@ -125,57 +128,60 @@ fun FixLoading(
 				Box(
 					modifier = Modifier
 						.fillMaxWidth()
-						.weight(.8f)
+						.weight(1f), contentAlignment = Alignment.Center
 				) {
 
-					if (isDone) {
-						Column(
-							modifier = Modifier.fillMaxSize(),
-							horizontalAlignment = Alignment.CenterHorizontally,
-							verticalArrangement = Arrangement.SpaceAround
-						) {
-							Icon(
-								painter = rememberVectorPainter(image = Icons.Default.DoneAll),
-								contentDescription = "done",
-								modifier = Modifier.size(80.dp)
-							)
+					Crossfade(targetState = isDone) {
+						if (it) {
+							Column(
+								modifier = Modifier.fillMaxSize(),
+								horizontalAlignment = Alignment.CenterHorizontally,
+								verticalArrangement = Arrangement.SpaceAround
+							) {
+								Icon(
+									painter = rememberVectorPainter(image = Icons.Default.DoneAll),
+									contentDescription = "done",
+									modifier = Modifier.size(80.dp)
+								)
 
-							Text(text = buildAnnotatedString {
-								append("处理成功：")
-								withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-									append(successCount.toString())
-								}
-								append(",失败：")
-								withStyle(SpanStyle(color = Color.Red.copy(alpha = .9f), fontWeight = FontWeight.SemiBold)) {
-									append("$errorCount")
-								}
-							})
+								Text(text = buildAnnotatedString {
+									append("处理成功：")
+									withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+										append(successCount.toString())
+									}
+									append(",失败：")
+									withStyle(SpanStyle(color = Color.Red.copy(alpha = .9f), fontWeight = FontWeight.SemiBold)) {
+										append("$errorCount")
+									}
+								})
+							}
+						} else {
+							Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+								LottieAnimation(
+									composition = composition,
+									progress = { lottieState },
+									modifier = Modifier
+										.size(100.dp)
+								)
+							}
 						}
-					} else {
-						LottieAnimation(
-							composition = composition,
-							progress = { lottieState },
-							modifier = Modifier
-								.size(100.dp)
-								.align(alignment = Alignment.Center)
-						)
 					}
 
 				}
 
-				if (isDone) {
+				if (isDone){
 					CommonButton(content = "确定", modifier = Modifier.padding(vertical = 12.dp)) {
 						confirmClick.invoke()
 					}
-				} else {
+				}else{
 					Text(
 						text = content,
 						textAlign = TextAlign.Center,
 						overflow = TextOverflow.Ellipsis,
+						maxLines = 2,
 						modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)
 					)
 				}
-
 			}
 		}
 	}
