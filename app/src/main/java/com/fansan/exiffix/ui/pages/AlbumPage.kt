@@ -28,11 +28,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -93,9 +94,7 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 						) {
 							item {
 								val allPhotoEntity = NewAlbumEntity(
-									"所有照片",
-									viewModel.firstImg,
-									viewModel.allImageCount
+									"所有照片", viewModel.firstImg, viewModel.allImageCount
 								)
 								AlbumCard(albumEntity = allPhotoEntity) {
 									when (type) {
@@ -129,10 +128,13 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 
 						modifyFileNameState?.let {
 							if (it.showDialogState.value) {
-								Dialog(onDismissRequest = { it.dismissDialog() }, properties = DialogProperties(dismissOnClickOutside = false)) {
-									ModifyFileNameDialog(confirm = { prefix,format ->
+								Dialog(
+									onDismissRequest = { it.dismissDialog() },
+									properties = DialogProperties(dismissOnClickOutside = false)
+								) {
+									ModifyFileNameDialog(confirm = { prefix, format ->
 
-									}){
+									}) {
 										it.dismissDialog()
 									}
 								}
@@ -215,7 +217,10 @@ private fun AlbumCard(albumEntity: NewAlbumEntity, click: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModifyFileNameDialog(confirm:(String, String) -> Unit, cancel:() -> Unit) {
+fun ModifyFileNameDialog(confirm: (String, String) -> Unit, cancel: () -> Unit) {
+	val sampleTime = remember {
+		mutableStateOf(System.currentTimeMillis())
+	}
 	val focusRequester = remember { FocusRequester() }
 	val focusManager = LocalFocusManager.current
 	var prefix by rememberMutableStateOf(value = "IMG")
@@ -223,138 +228,156 @@ fun ModifyFileNameDialog(confirm:(String, String) -> Unit, cancel:() -> Unit) {
 	var prefixError by rememberMutableStateOf(value = false)
 	var timeFormat by rememberMutableStateOf(value = "yyyyMMddHHmmss")
 	LaunchedEffect(key1 = prefix, block = {
-		prefixError = if (prefix.isNotEmpty()) !ReflectUtils.reflect("android.os.FileUtils").method("isValidExtFilename", prefix)
-			.get<Boolean>()
+		prefixError = if (prefix.isNotEmpty()) !ReflectUtils.reflect("android.os.FileUtils")
+			.method("isValidExtFilename", prefix).get<Boolean>()
 		else false
 	})
 	var formatOffset by rememberMutableStateOf(value = 0f)
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
-			.height(200.dp)
+			.wrapContentHeight()
 			.background(
 				color = MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium
 			)
 			.padding(all = 12.dp), horizontalAlignment = Alignment.CenterHorizontally
 	) {
 
-		Text(text = "批量文件名修改", fontSize = 14.sp)
+		Text(text = "批量文件名修改", fontSize = 16.sp)
 		SpacerH(height = 12.dp)
 		Text(
 			text = "示例：${if (prefix.isNotEmpty()) "${prefix}_" else ""}${
 				TimeUtils.millis2String(
-					TimeUtils.getNowMills(),
-					timeFormat
+					sampleTime.value, timeFormat
 				)
-			}.png"
+			}.png", fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis
 		)
 		SpacerH(height = 12.dp)
-		Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-			OutlinedTextField(
-				value = prefix,
-				onValueChange = {
-					prefix = it
-				},
-				isError = prefixError,
-				singleLine = true,
-				label = {
-					if (prefixError) {
-						Text(text = "非法字符", fontSize = 8.sp)
-					}else{
-						Text(text = "前缀", fontSize = 8.sp)
-					}
-				},
-
-				modifier = Modifier
-					.weight(.28f)
-					.focusRequester(focusRequester = focusRequester),
-				colors = TextFieldDefaults.outlinedTextFieldColors(focusedBorderColor = MaterialTheme.colorScheme.outline, focusedLabelColor = MaterialTheme.colorScheme.outline, unfocusedBorderColor = MaterialTheme.colorScheme.outline, unfocusedLabelColor = MaterialTheme.colorScheme.outline)
-			)
-
-			SpacerW(width = 12.dp)
-
-			OutlinedTextField(value = timeFormat,
-			                  onValueChange = {
-				                  timeFormat = it
-			                  },
-			                  modifier = Modifier
-				                  .weight(.72f)
-				                  .noRippleClick {
-					                  formatSelectorShow = true
-					                  focusManager.clearFocus()
-				                  }
-				                  .onGloballyPositioned {
-					                  formatOffset = it.positionInParent().x
+		Box {
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				OutlinedTextField(value = prefix,
+				                  onValueChange = {
+					                  prefix = it
 				                  },
-			                  enabled = false,
-			                  singleLine = true,
-			                  label = {
-				                  Text(text = "日期格式", fontSize = 8.sp)
-			                  },
-			                  colors = TextFieldDefaults.outlinedTextFieldColors(disabledBorderColor = MaterialTheme.colorScheme.outline, disabledLabelColor = MaterialTheme.colorScheme.outline, disabledTextColor = MaterialTheme.colorScheme.onSurface)
-			                  , textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center))
-		}
+				                  isError = prefixError,
+				                  singleLine = true,
+				                  label = {
+					                  if (prefixError) {
+						                  Text(text = "非法字符", fontSize = 8.sp)
+					                  } else {
+						                  Text(text = "前缀", fontSize = 8.sp)
+					                  }
+				                  },
 
-		DropdownMenu(
-			expanded = formatSelectorShow,
-			onDismissRequest = { formatSelectorShow = false },
-			offset = DpOffset(x = with(LocalDensity.current){ formatOffset.toDp() }, y = 0.dp),
-		) {
-			DropdownMenuItem(text = { Text(text = "yyyyMMddHHmmss") }, onClick = {
-				timeFormat = "yyyyMMddHHmmss"
-			}, trailingIcon = {
-				if (timeFormat == "yyyyMMddHHmmss") {
-					Icon(
-						painter = rememberVectorPainter(image = Icons.Default.Check),
-						contentDescription = "check"
-					)
-				}
-			})
+				                  modifier = Modifier
+					                  .weight(.28f)
+					                  .focusRequester(focusRequester = focusRequester),
+				                  colors = TextFieldDefaults.outlinedTextFieldColors(
+					                  focusedBorderColor = MaterialTheme.colorScheme.outline,
+					                  focusedLabelColor = MaterialTheme.colorScheme.outline,
+					                  unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+					                  unfocusedLabelColor = MaterialTheme.colorScheme.outline
+				                  )
+				)
 
-			DropdownMenuItem(text = { Text(text = "yyyyMMdd_HHmmss") }, onClick = {
-				timeFormat = "yyyyMMdd_HHmmss"
-			}, trailingIcon = {
-				if (timeFormat == "yyyyMMdd_HHmmss") {
-					Icon(
-						painter = rememberVectorPainter(image = Icons.Default.Check),
-						contentDescription = "check"
-					)
-				}
-			})
-
-			DropdownMenuItem(text = { Text(text = "yyyyMMdd-HHmmss") }, onClick = {
-				timeFormat = "yyyyMMdd-HHmmss"
-			}, trailingIcon = {
-				if (timeFormat == "yyyyMMdd-HHmmss") {
-					Icon(
-						painter = rememberVectorPainter(image = Icons.Default.Check),
-						contentDescription = "check"
-					)
-				}
-			})
-		}
-
-		/*Box {
-
-
-			Row(modifier = Modifier
-				.fillMaxWidth()
-				.padding(top = 24.dp), horizontalArrangement = Arrangement.Center) {
-
-
-				CommonButton(
-					content = "取消", modifier = Modifier.weight(.5f)
-				) {
-					cancel.invoke()
-				}
 				SpacerW(width = 12.dp)
 
-				CommonButton(
-					content = "确定",modifier = Modifier.weight(.5f)
-				) {
-					confirm.invoke(prefix, timeFormat)
-				}
+				OutlinedTextField(value = timeFormat,
+				                  onValueChange = {
+					                  timeFormat = it
+				                  },
+				                  modifier = Modifier
+					                  .weight(.72f)
+					                  .noRippleClick {
+						                  formatSelectorShow = true
+						                  focusManager.clearFocus()
+					                  }
+					                  .onGloballyPositioned {
+						                  formatOffset = it.positionInParent().x
+					                  },
+				                  enabled = false,
+				                  singleLine = true,
+				                  label = {
+					                  Text(text = "日期格式", fontSize = 8.sp)
+				                  },
+				                  colors = TextFieldDefaults.outlinedTextFieldColors(
+					                  disabledBorderColor = MaterialTheme.colorScheme.outline,
+					                  disabledLabelColor = MaterialTheme.colorScheme.outline,
+					                  disabledTextColor = MaterialTheme.colorScheme.onSurface
+				                  ),
+				                  textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
+				)
 			}
-		}*/
+
+
+			DropdownMenu(expanded = formatSelectorShow,
+			             onDismissRequest = { formatSelectorShow = false },
+			             offset = DpOffset(
+				             x = with(LocalDensity.current) { formatOffset.toDp() },
+				             y = 0.dp
+			             )
+			) {
+				DropdownMenuItem(text = { Text(text = "yyyyMMddHHmmss") }, onClick = {
+					timeFormat = "yyyyMMddHHmmss"
+					formatSelectorShow = false
+				}, trailingIcon = {
+					if (timeFormat == "yyyyMMddHHmmss") {
+						Icon(
+							painter = rememberVectorPainter(image = Icons.Default.Check),
+							contentDescription = "check"
+						)
+					}
+				})
+
+				DropdownMenuItem(text = { Text(text = "yyyyMMdd_HHmmss") }, onClick = {
+					timeFormat = "yyyyMMdd_HHmmss"
+					formatSelectorShow = false
+				}, trailingIcon = {
+					if (timeFormat == "yyyyMMdd_HHmmss") {
+						Icon(
+							painter = rememberVectorPainter(image = Icons.Default.Check),
+							contentDescription = "check"
+						)
+					}
+				})
+
+				DropdownMenuItem(text = { Text(text = "yyyyMMdd-HHmmss") }, onClick = {
+					timeFormat = "yyyyMMdd-HHmmss"
+					formatSelectorShow = false
+				}, trailingIcon = {
+					if (timeFormat == "yyyyMMdd-HHmmss") {
+						Icon(
+							painter = rememberVectorPainter(image = Icons.Default.Check),
+							contentDescription = "check"
+						)
+					}
+				})
+			}
+		}
+
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(top = 24.dp),
+			horizontalArrangement = Arrangement.Center
+		) {
+
+
+			CommonButton(
+				content = "取消", modifier = Modifier.weight(.5f)
+			) {
+				cancel.invoke()
+			}
+			SpacerW(width = 12.dp)
+
+			CommonButton(
+				content = "确定", modifier = Modifier.weight(.5f)
+			) {
+				confirm.invoke(prefix, timeFormat)
+			}
+		}
 	}
 }
