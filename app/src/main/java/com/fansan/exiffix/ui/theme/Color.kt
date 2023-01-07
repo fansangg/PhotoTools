@@ -17,3 +17,5 @@ val Black11 = Color(0xff111111)
 val Black24 = Color(0xff242424)
 val White850 = Color.White.copy(alpha = 0.85f)
 val Gray = Color(0xff313131)
+
+val ButtonColor = Color(0xff3056f4)

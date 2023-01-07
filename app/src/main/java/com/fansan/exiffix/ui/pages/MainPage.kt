@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,10 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.blankj.utilcode.util.ClickUtils
 import com.fansan.exiffix.R
+import com.fansan.exiffix.entity.AlbumType
 import com.fansan.exiffix.entity.MainFuncBean
 import com.fansan.exiffix.router.Router
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.TitleColumn
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 /**
  *@author  fansan
@@ -28,6 +31,11 @@ import com.fansan.exiffix.ui.widgets.TitleColumn
 
 @Composable
 fun MainPage(navHostController: NavHostController) {
+	val statusBarColor = colorScheme.primary
+	val systemUiController = rememberSystemUiController()
+	SideEffect {
+		systemUiController.setStatusBarColor(statusBarColor)
+	}
 	BackHandler()
 	val itemList = remember {
 		listOf(
@@ -45,7 +53,8 @@ fun MainPage(navHostController: NavHostController) {
 						.fillMaxWidth()
 						.aspectRatio(1f), bean = it) {
 						when(it.name){
-							"照片日期修复" -> navHostController.navigate(Router.album)
+							"照片日期修复" -> navHostController.navigate("${Router.album}/${AlbumType.DATE}")
+							"批量修改文件名" -> navHostController.navigate("${Router.album}/${AlbumType.FILENAME}")
 						}
 					}
 				}
@@ -71,16 +80,6 @@ fun FunctionItem(modifier: Modifier,bean:MainFuncBean,click: () -> Unit) {
 			}
 			Text(text = bean.name, modifier = Modifier.padding(vertical = 12.dp))
 		}
-	}
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RenameFilesBottomSheet(){
-	ModalNavigationDrawer(drawerContent = {
-
-	}) {
-
 	}
 }
 

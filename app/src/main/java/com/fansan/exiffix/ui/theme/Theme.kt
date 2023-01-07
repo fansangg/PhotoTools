@@ -38,7 +38,7 @@ fun ExifFIXTheme(
 	darkTheme: Boolean = isSystemInDarkTheme(), // Dynamic color is available on Android 12+
 	dynamicColor: Boolean = false, content: @Composable () -> Unit
 ) {
-	val systemUiController = rememberSystemUiController()
+
 	val colorScheme = when {
 		dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
 			val context = LocalContext.current
@@ -46,10 +46,6 @@ fun ExifFIXTheme(
 		}
 		darkTheme -> DarkColorScheme
 		else -> LightColorScheme
-	}
-
-	SideEffect {
-		systemUiController.setStatusBarColor(colorScheme.primary)
 	}
 
 	MaterialTheme(

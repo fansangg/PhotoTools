@@ -7,34 +7,48 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore.*
 import android.provider.Settings
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.airbnb.lottie.compose.*
-import com.fansan.exiffix.common.CommonButton
-import com.fansan.exiffix.common.EmptyDir
-import com.fansan.exiffix.common.LoadingStyle2
+import com.blankj.utilcode.util.ReflectUtils
+import com.blankj.utilcode.util.TimeUtils
+import com.fansan.exiffix.common.*
+import com.fansan.exiffix.entity.AlbumType
 import com.fansan.exiffix.entity.NewAlbumEntity
 import com.fansan.exiffix.router.Router
+import com.fansan.exiffix.ui.state.ModifyFileNameState
 import com.fansan.exiffix.ui.viewmodel.AlbumViewModel
 import com.fansan.exiffix.ui.widgets.SpacerH
 import com.fansan.exiffix.ui.widgets.SpacerW
 import com.fansan.exiffix.ui.widgets.TitleColumn
+import com.fansan.exiffix.util.rememberMutableStateOf
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
@@ -45,8 +59,13 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun AlbumPage(navHostController: NavHostController) {
+fun AlbumPage(navHostController: NavHostController, type: String) {
 	val context = LocalContext.current
+
+	val modifyFileNameState = if (type == AlbumType.FILENAME.name) remember {
+		ModifyFileNameState()
+	} else null
+
 	val readPermissionState = rememberMultiplePermissionsState(
 		permissions = if (Build.VERSION.SDK_INT >= 33) listOf(
 			Manifest.permission.READ_MEDIA_IMAGES,
@@ -55,10 +74,6 @@ fun AlbumPage(navHostController: NavHostController) {
 		) else listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
 	)
 	val viewModel = viewModel<AlbumViewModel>()
-
-	var shouldShowRationaleCount by remember {
-		mutableStateOf(0)
-	}
 
 	if (readPermissionState.allPermissionsGranted) {
 		viewModel.getAlbums(context)
@@ -70,32 +85,67 @@ fun AlbumPage(navHostController: NavHostController) {
 				if (viewModel.newAlbumMap.isEmpty()) {
 					EmptyDir(modifier = Modifier.fillMaxSize(), tips = "没有找到文件")
 				} else {
-					LazyColumn(
-						modifier = Modifier.fillMaxSize(),
-						contentPadding = PaddingValues(vertical = 12.dp),
-						verticalArrangement = Arrangement.spacedBy(12.dp)
-					) {
-						item {
-							val allPhotoEntity =
-								NewAlbumEntity("所有照片", viewModel.firstImg, viewModel.allImageCount)
-							AlbumCard(albumEntity = allPhotoEntity) {
-								navHostController.navigate("${Router.photoPage}/_allImgs")
+					Box {
+						LazyColumn(
+							modifier = Modifier.fillMaxSize(),
+							contentPadding = PaddingValues(vertical = 12.dp),
+							verticalArrangement = Arrangement.spacedBy(12.dp)
+						) {
+							item {
+								val allPhotoEntity = NewAlbumEntity(
+									"所有照片",
+									viewModel.firstImg,
+									viewModel.allImageCount
+								)
+								AlbumCard(albumEntity = allPhotoEntity) {
+									when (type) {
+										AlbumType.DATE.name -> {
+											navHostController.navigate("${Router.photoPage}/_allImgs")
+										}
+										AlbumType.FILENAME.name -> {
+											modifyFileNameState?.showDialog()
+										}
+										else -> {}
+									}
+
+								}
+							}
+							items(viewModel.newAlbumMap.keys.toList()) {
+								val entity = viewModel.newAlbumMap.getValue(it)
+								AlbumCard(albumEntity = entity) {
+									when (type) {
+										AlbumType.DATE.name -> {
+											navHostController.navigate("${Router.photoPage}/${entity.albumName}")
+										}
+										AlbumType.FILENAME.name -> {
+											modifyFileNameState?.showDialog()
+										}
+										else -> {}
+									}
+
+								}
 							}
 						}
-						items(viewModel.newAlbumMap.keys.toList()) {
-							val entity = viewModel.newAlbumMap.getValue(it)
-							AlbumCard(albumEntity = entity) {
-								navHostController.navigate("${Router.photoPage}/${entity.albumName}")
+
+						modifyFileNameState?.let {
+							if (it.showDialogState.value) {
+								Dialog(onDismissRequest = { it.dismissDialog() }, properties = DialogProperties(dismissOnClickOutside = false)) {
+									ModifyFileNameDialog(confirm = { prefix,format ->
+
+									}){
+										it.dismissDialog()
+									}
+								}
 							}
 						}
 					}
+
 				}
 			} else {
 				LoadingStyle2()
 			}
 		} else {
 			val textToShow = if (readPermissionState.shouldShowRationale) {
-				shouldShowRationaleCount++
 				"需要读取照片权限才能正常工作"
 			} else {
 				"需要读取照片权限才能正常工作\n请允许此权限"
@@ -160,5 +210,151 @@ private fun AlbumCard(albumEntity: NewAlbumEntity, click: () -> Unit) {
 				fontWeight = FontWeight.SemiBold
 			)
 		}
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ModifyFileNameDialog(confirm:(String, String) -> Unit, cancel:() -> Unit) {
+	val focusRequester = remember { FocusRequester() }
+	val focusManager = LocalFocusManager.current
+	var prefix by rememberMutableStateOf(value = "IMG")
+	var formatSelectorShow by rememberMutableStateOf(value = false)
+	var prefixError by rememberMutableStateOf(value = false)
+	var timeFormat by rememberMutableStateOf(value = "yyyyMMddHHmmss")
+	LaunchedEffect(key1 = prefix, block = {
+		prefixError = if (prefix.isNotEmpty()) !ReflectUtils.reflect("android.os.FileUtils").method("isValidExtFilename", prefix)
+			.get<Boolean>()
+		else false
+	})
+	var formatOffset by rememberMutableStateOf(value = 0f)
+	Column(
+		modifier = Modifier
+			.fillMaxWidth()
+			.height(200.dp)
+			.background(
+				color = MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium
+			)
+			.padding(all = 12.dp), horizontalAlignment = Alignment.CenterHorizontally
+	) {
+
+		Text(text = "批量文件名修改", fontSize = 14.sp)
+		SpacerH(height = 12.dp)
+		Text(
+			text = "示例：${if (prefix.isNotEmpty()) "${prefix}_" else ""}${
+				TimeUtils.millis2String(
+					TimeUtils.getNowMills(),
+					timeFormat
+				)
+			}.png"
+		)
+		SpacerH(height = 12.dp)
+		Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+			OutlinedTextField(
+				value = prefix,
+				onValueChange = {
+					prefix = it
+				},
+				isError = prefixError,
+				singleLine = true,
+				label = {
+					if (prefixError) {
+						Text(text = "非法字符", fontSize = 8.sp)
+					}else{
+						Text(text = "前缀", fontSize = 8.sp)
+					}
+				},
+
+				modifier = Modifier
+					.weight(.28f)
+					.focusRequester(focusRequester = focusRequester),
+				colors = TextFieldDefaults.outlinedTextFieldColors(focusedBorderColor = MaterialTheme.colorScheme.outline, focusedLabelColor = MaterialTheme.colorScheme.outline, unfocusedBorderColor = MaterialTheme.colorScheme.outline, unfocusedLabelColor = MaterialTheme.colorScheme.outline)
+			)
+
+			SpacerW(width = 12.dp)
+
+			OutlinedTextField(value = timeFormat,
+			                  onValueChange = {
+				                  timeFormat = it
+			                  },
+			                  modifier = Modifier
+				                  .weight(.72f)
+				                  .noRippleClick {
+					                  formatSelectorShow = true
+					                  focusManager.clearFocus()
+				                  }
+				                  .onGloballyPositioned {
+					                  formatOffset = it.positionInParent().x
+				                  },
+			                  enabled = false,
+			                  singleLine = true,
+			                  label = {
+				                  Text(text = "日期格式", fontSize = 8.sp)
+			                  },
+			                  colors = TextFieldDefaults.outlinedTextFieldColors(disabledBorderColor = MaterialTheme.colorScheme.outline, disabledLabelColor = MaterialTheme.colorScheme.outline, disabledTextColor = MaterialTheme.colorScheme.onSurface)
+			                  , textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center))
+		}
+
+		DropdownMenu(
+			expanded = formatSelectorShow,
+			onDismissRequest = { formatSelectorShow = false },
+			offset = DpOffset(x = with(LocalDensity.current){ formatOffset.toDp() }, y = 0.dp),
+		) {
+			DropdownMenuItem(text = { Text(text = "yyyyMMddHHmmss") }, onClick = {
+				timeFormat = "yyyyMMddHHmmss"
+			}, trailingIcon = {
+				if (timeFormat == "yyyyMMddHHmmss") {
+					Icon(
+						painter = rememberVectorPainter(image = Icons.Default.Check),
+						contentDescription = "check"
+					)
+				}
+			})
+
+			DropdownMenuItem(text = { Text(text = "yyyyMMdd_HHmmss") }, onClick = {
+				timeFormat = "yyyyMMdd_HHmmss"
+			}, trailingIcon = {
+				if (timeFormat == "yyyyMMdd_HHmmss") {
+					Icon(
+						painter = rememberVectorPainter(image = Icons.Default.Check),
+						contentDescription = "check"
+					)
+				}
+			})
+
+			DropdownMenuItem(text = { Text(text = "yyyyMMdd-HHmmss") }, onClick = {
+				timeFormat = "yyyyMMdd-HHmmss"
+			}, trailingIcon = {
+				if (timeFormat == "yyyyMMdd-HHmmss") {
+					Icon(
+						painter = rememberVectorPainter(image = Icons.Default.Check),
+						contentDescription = "check"
+					)
+				}
+			})
+		}
+
+		/*Box {
+
+
+			Row(modifier = Modifier
+				.fillMaxWidth()
+				.padding(top = 24.dp), horizontalArrangement = Arrangement.Center) {
+
+
+				CommonButton(
+					content = "取消", modifier = Modifier.weight(.5f)
+				) {
+					cancel.invoke()
+				}
+				SpacerW(width = 12.dp)
+
+				CommonButton(
+					content = "确定",modifier = Modifier.weight(.5f)
+				) {
+					confirm.invoke(prefix, timeFormat)
+				}
+			}
+		}*/
 	}
 }
