@@ -75,6 +75,7 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 				) { _, _ ->
 
 				}
+				navHostController.previousBackStackEntry?.savedStateHandle?.set("path",info.path)
 			} else {
 				ToastUtils.showShort("请允许修改此照片")
 			}
@@ -174,7 +175,14 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 				SpacerH(height = 24.dp)
 				CommonButton(content = "修复",modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
 					if (file.canWrite()) {
-						fixFunc(file, info.taken)
+						val result = fixFunc(file, info.taken)
+						if (result) lastModifyTime = info.taken
+						MediaScannerConnection.scanFile(
+							context, arrayOf(info.path), null
+						) { _, _ ->
+
+						}
+						navHostController.previousBackStackEntry?.savedStateHandle?.set("path",info.path)
 					} else {
 						val editPendingIntent =
 							createWriteRequest(context.contentResolver, listOf(Uri.parse(info.uri)))

@@ -37,11 +37,11 @@ fun TipDialog(
 		ElevatedCard(
 			modifier = Modifier
 				.fillMaxWidth(.7f)
-				.aspectRatio(4 / 3.5f)
+				.wrapContentHeight()
 		) {
-			Box(
+			Column(
 				modifier = Modifier
-					.fillMaxSize()
+					.fillMaxWidth().wrapContentHeight()
 					.padding(horizontal = 16.dp)
 			) {
 
@@ -49,17 +49,17 @@ fun TipDialog(
 					painter = rememberVectorPainter(image = icons),
 					contentDescription = "icons",
 					modifier = Modifier
-						.fillMaxSize(.3f)
+						.fillMaxWidth(.3f)
 						.aspectRatio(1f)
-						.align(alignment = Alignment.TopCenter)
+						.align(alignment = Alignment.CenterHorizontally)
 						.padding(top = 32.dp)
 				)
 
 				Text(
 					text = tips,
 					modifier = Modifier
-						.padding(horizontal = 16.dp)
-						.align(alignment = Alignment.Center),
+						.padding(horizontal = 12.dp, vertical = 16.dp)
+						.align(alignment = Alignment.CenterHorizontally),
 					textAlign = TextAlign.Center,
 					style = MaterialTheme.typography.bodyMedium
 				)
@@ -67,7 +67,7 @@ fun TipDialog(
 
 				Row(modifier = Modifier
 					.fillMaxWidth()
-					.align(alignment = Alignment.BottomCenter)
+					.align(alignment = Alignment.CenterHorizontally)
 					.padding(bottom = 12.dp), horizontalArrangement = Arrangement.Center) {
 
 					if (showCancel) {

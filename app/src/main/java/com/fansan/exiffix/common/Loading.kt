@@ -103,6 +103,7 @@ fun FixLoading(
 	content: String,
 	successCount: Int,
 	errorCount: Int,
+	skipCount:Int = 0,
 	confirmClick: () -> Unit
 ) {
 	val json = if (isSystemInDarkTheme()) "anim/Chicken_dark.json" else "anim/Chicken.json"
@@ -145,13 +146,16 @@ fun FixLoading(
 								)
 
 								Text(text = buildAnnotatedString {
-									append("处理成功：")
+									append("成功：")
 									withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
 										append(successCount.toString())
 									}
-									append(",失败：")
+									append("\n失败：")
 									withStyle(SpanStyle(color = Color.Red.copy(alpha = .9f), fontWeight = FontWeight.SemiBold)) {
 										append("$errorCount")
+									}
+									if (skipCount > 0){
+										append("\n跳过：$skipCount")
 									}
 								})
 							}

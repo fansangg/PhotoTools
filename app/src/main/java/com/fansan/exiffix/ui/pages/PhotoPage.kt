@@ -24,6 +24,7 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,10 +43,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.blankj.utilcode.util.GsonUtils
 import com.blankj.utilcode.util.ToastUtils
-import com.fansan.exiffix.common.CommonButton
-import com.fansan.exiffix.common.FixLoading
-import com.fansan.exiffix.common.LoadingStyle2
-import com.fansan.exiffix.common.TipDialog
+import com.fansan.exiffix.common.*
 import com.fansan.exiffix.entity.ImageInfoEntity
 import com.fansan.exiffix.router.Router
 import com.fansan.exiffix.ui.viewmodel.PhotoPageViewModel
@@ -60,6 +58,20 @@ import com.fansan.exiffix.ui.widgets.TitleColumn
 @Composable
 fun PhotoPage(navHostController: NavHostController, albumName: String) {
 	val viewModel = viewModel<PhotoPageViewModel>()
+
+	val tipDialogShow = rememberSaveable {
+		mutableStateOf(true)
+	}
+	val resultState = navHostController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("path")?.observeAsState()
+	resultState?.value?.let {
+		viewModel.errorPhotoList.removeIf { entity ->
+			entity.path == it
+		}
+		if (viewModel.errorPhotoList.isEmpty()){
+			tipDialogShow.value = true
+		}
+		navHostController.currentBackStackEntry?.savedStateHandle?.remove<String>("path")
+	}
 
 	val context = LocalContext.current
 	LaunchedEffect(key1 = Unit, block = {
@@ -82,23 +94,13 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 	}
 
 	val launcher =
-		rememberLauncherForActivityResult(contract = ActivityResultContracts.StartIntentSenderForResult(),
-		                                  onResult = {
-			                                  if (it.resultCode == Activity.RESULT_OK) {
-				                                  viewModel.fixAll()
-			                                  } else {
-				                                  ToastUtils.showShort("请允许修改这些照片")
-			                                  }
-		                                  })
+		writeRequest(){
+			viewModel.fixAll()
+		}
 
 	val showWraningTips = rememberSaveable {
 		mutableStateOf(false)
 	}
-
-	val tipDialogShow = rememberSaveable {
-		mutableStateOf(true)
-	}
-
 
 
 	TitleColumn(title = if (albumName == "_allImgs") "所有照片" else albumName,
@@ -151,7 +153,7 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 				}
 
 				if (showWraningTips.value) {
-					TipDialog(tips = "当前结果内所有照片最后修改日期将修复为照片的拍摄日期，是否继续执行此操作？",
+					TipDialog(tips = "当前结果内所有照片最后修改日期将修复为照片的元数据日期，是否继续执行此操作？",
 					          confirmText = "继续执行",
 					          showCancel = true,
 					          icons = Icons.Default.Warning,
@@ -185,7 +187,7 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 
 				if (tipDialogShow.value) {
 					val tips =
-						if (viewModel.errorPhotoList.isNotEmpty()) "发现${viewModel.errorPhotoList.size}张日期异常照片" else "所有照片日期均无异常"
+						if (viewModel.errorPhotoList.isNotEmpty()) "发现${viewModel.errorPhotoList.size}张与元数据日期不同步的照片" else "所有照片最后修改日期均已和元数据日期同步"
 					val icon =
 						if (viewModel.errorPhotoList.isNotEmpty()) Icons.Default.DoneAll else Icons.Default.ThumbUp
 					TipDialog(tips = tips, icons = icon, click = {

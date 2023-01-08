@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.blankj.utilcode.util.ClickUtils
 import com.fansan.exiffix.R
+import com.fansan.exiffix.common.Constants
 import com.fansan.exiffix.entity.AlbumType
 import com.fansan.exiffix.entity.MainFuncBean
 import com.fansan.exiffix.router.Router
@@ -39,22 +40,22 @@ fun MainPage(navHostController: NavHostController) {
 	BackHandler()
 	val itemList = remember {
 		listOf(
-			MainFuncBean("照片日期修复", R.mipmap.date),
-			MainFuncBean("修改照片Exif日期", R.mipmap.exif),
-			MainFuncBean("批量修改文件名", R.mipmap.file),
+			MainFuncBean(Constants.MODIFIED_DATE_LABEL, R.mipmap.date),
+			MainFuncBean(Constants.EXIF_LABEL, R.mipmap.exif),
+			MainFuncBean(Constants.MODIFIED_FILE_NAME_LABEL, R.mipmap.file),
 		)
 	}
-	TitleColumn(title = "主页", withBackIcon = false, backClick = { }) {
+	TitleColumn(title = "欢迎使用", withBackIcon = false, backClick = { }) {
 		LazyVerticalGrid(
 			columns = GridCells.Fixed(2),
 			content = {
 				items(itemList){
 					FunctionItem(modifier = Modifier
 						.fillMaxWidth()
-						.aspectRatio(1f), bean = it) {
+						.aspectRatio(1.2f), bean = it) {
 						when(it.name){
-							"照片日期修复" -> navHostController.navigate("${Router.album}/${AlbumType.DATE}")
-							"批量修改文件名" -> navHostController.navigate("${Router.album}/${AlbumType.FILENAME}")
+							Constants.MODIFIED_DATE_LABEL -> navHostController.navigate("${Router.album}/${AlbumType.DATE}")
+							Constants.MODIFIED_FILE_NAME_LABEL -> navHostController.navigate("${Router.album}/${AlbumType.FILENAME}")
 						}
 					}
 				}
