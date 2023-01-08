@@ -16,7 +16,7 @@ import com.fansan.exiffix.ui.theme.Black11
 
 
 @Composable
-fun CommonButton(content:String,modifier: Modifier = Modifier,click:() -> Unit){
+fun CommonButton(content:String,modifier: Modifier = Modifier,enable:Boolean = true,click:() -> Unit){
 	Button(
 		onClick = { click.invoke() },
 		modifier = modifier,
@@ -24,7 +24,8 @@ fun CommonButton(content:String,modifier: Modifier = Modifier,click:() -> Unit){
 		colors = ButtonDefaults.buttonColors(
 			containerColor = if (isSystemInDarkTheme()) Color(0xff3056f4) else Black11,
 			contentColor = Color.White
-		)
+		),
+		enabled = enable
 	) {
 		Text(text = content)
 	}

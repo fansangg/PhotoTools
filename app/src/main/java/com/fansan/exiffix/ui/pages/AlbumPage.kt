@@ -264,7 +264,7 @@ fun ModifyFileNameDialog(confirm: (String, String) -> Unit, cancel: () -> Unit) 
 				                  },
 				                  isError = prefixError,
 				                  singleLine = true,
-				                  label = {
+				                  supportingText = {
 					                  if (prefixError) {
 						                  Text(text = "非法字符", fontSize = 8.sp)
 					                  } else {
@@ -300,7 +300,7 @@ fun ModifyFileNameDialog(confirm: (String, String) -> Unit, cancel: () -> Unit) 
 					                  },
 				                  enabled = false,
 				                  singleLine = true,
-				                  label = {
+				                  supportingText = {
 					                  Text(text = "日期格式", fontSize = 8.sp)
 				                  },
 				                  colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -374,7 +374,7 @@ fun ModifyFileNameDialog(confirm: (String, String) -> Unit, cancel: () -> Unit) 
 			SpacerW(width = 12.dp)
 
 			CommonButton(
-				content = "确定", modifier = Modifier.weight(.5f)
+				content = "确定", modifier = Modifier.weight(.5f), enable = !prefixError
 			) {
 				confirm.invoke(prefix, timeFormat)
 			}

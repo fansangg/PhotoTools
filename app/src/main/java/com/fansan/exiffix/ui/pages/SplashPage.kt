@@ -53,7 +53,7 @@ fun SplashScreen(navController: NavController) {
 	Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
 
 		Image(
-			painter = painterResource(id = R.mipmap.ic_launcher),
+			painter = painterResource(id = R.mipmap.ic_launcher_round),
 			contentDescription = "logo",
 			modifier = Modifier
 				.size(160.dp)
@@ -74,7 +74,7 @@ fun SplashScreen(navController: NavController) {
 
 		LaunchedEffect(key1 = null) {
 			animState.value = true
-			delay(3000)
+			delay(2500)
 			navController.navigate(route = "MAIN")
 		}
 	}
