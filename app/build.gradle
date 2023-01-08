@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace 'com.fansan.exiffix'
+    namespace 'com.fansan.picdatemodify'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.fansan.exiffix"
+        applicationId "com.fansan.picdatemodify"
         minSdk 30
         targetSdk 33
         versionCode 1
