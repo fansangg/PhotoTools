@@ -147,7 +147,7 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 
 							viewModel.modifyFileNameState.showWarningState.value -> {
 								val dateSource =
-									if (viewModel.modifyFileNameState.useTaken) "元数据日期" else "最后修改日期"
+									if (viewModel.modifyFileNameState.useTaken) "元数据日期" else "修改日期"
 								TipDialog(tips = "即将开始批量重命名照片名称\n\n修改范围: '${viewModel.modifyFileNameState.selectedAlbumName}'\n日期来源: '$dateSource'\n\n是否继续执行此操作？",
 								          confirmText = "继续执行",
 								          showCancel = true,

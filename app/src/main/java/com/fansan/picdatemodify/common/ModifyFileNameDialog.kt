@@ -66,7 +66,7 @@ fun ModifyFileNameDialog(
 			.padding(all = 12.dp), horizontalAlignment = Alignment.CenterHorizontally
 	) {
 
-		Text(text = "批量照片名称修改", fontSize = 18.sp)
+		Text(text = "批量重命名照片", fontSize = 18.sp)
 		SpacerH(height = 12.dp)
 		Text(
 			text = "示例：${if (prefix.value.isNotEmpty()) "${prefix.value}${symbol.value}" else ""}${
@@ -195,7 +195,7 @@ fun ModifyFileNameDialog(
 					)
 				)
 
-				Text(text = "使用最后修改日期")
+				Text(text = "使用修改日期")
 			}
 		}
 
@@ -227,7 +227,7 @@ fun ModifyFileNameDialog(
 						)
 					)
 
-					Text(text = "使用最后修改日期")
+					Text(text = "使用修改日期")
 
 				}
 

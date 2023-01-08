@@ -153,7 +153,7 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 						fontSize = 16.sp
 					)
 					Text(
-						text = "最后修改日期", fontWeight = FontWeight.SemiBold, fontSize = 16.sp
+						text = "修改日期", fontWeight = FontWeight.SemiBold, fontSize = 16.sp
 					)
 				}
 			}
