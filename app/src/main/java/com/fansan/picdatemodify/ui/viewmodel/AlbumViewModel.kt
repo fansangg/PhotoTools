@@ -8,12 +8,19 @@ import android.provider.MediaStore
 import android.provider.MediaStore.Images.Media
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.loader.content.CursorLoader
 import com.blankj.utilcode.util.TimeUtils
 import com.fansan.picdatemodify.common.logd
 import com.fansan.picdatemodify.entity.ModifiedNameEntity
 import com.fansan.picdatemodify.entity.NewAlbumEntity
 import com.fansan.picdatemodify.ui.state.ModifyFileNameState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlin.math.ceil
 
 class AlbumViewModel : ViewModel() {
 
@@ -23,6 +30,8 @@ class AlbumViewModel : ViewModel() {
 	val allDone = mutableStateOf(false)
 
 	val modifyFileNameState = ModifyFileNameState()
+
+	private val mutex = Mutex()
 
 	fun getAlbums(context: Context) {
 		if (newAlbumMap.isNotEmpty()) return
@@ -76,51 +85,94 @@ class AlbumViewModel : ViewModel() {
 	}
 
 	fun modifiedFileNames(context: Context) {
-		val list = getPhotoByAlbumName(context, modifyFileNameState.selectedAlbumName)
-		modifyFileNameState.setListCount(list.size)
-		list.forEachIndexed { _, modifiedNameEntity ->
-			if (modifiedNameEntity.takenTime <= 0){
-				if (modifyFileNameState.useTaken && modifyFileNameState.skipNoTaken){
-					modifyFileNameState.increaseCurrentIndex()
-					modifyFileNameState.increaseSkipCount()
-					return@forEachIndexed
+		viewModelScope.launch(Dispatchers.IO) {
+			val list = getPhotoByAlbumName(context, modifyFileNameState.selectedAlbumName)
+			modifyFileNameState.setListCount(list.size)
+			if (list.size > 300) {
+				val result = ceil(list.size / 5.0).toInt()
+				val newList = list.chunked(result)
+				newList.forEach { it ->
+					with(CoroutineScope(coroutineContext)) {
+						launch {
+							modifiedFileNamesImpl(context,it)
+						}
+					}
 				}
+			}else{
+				modifiedFileNamesImpl(context,list)
 			}
-			val formatTime = if (modifyFileNameState.useTaken && modifiedNameEntity.takenTime > 0)
-				modifiedNameEntity.takenTime else modifiedNameEntity.modifiedTime
-			val contentValues = ContentValues()
-			val paddingValue = ContentValues()
-			val newDisplayName =  java.lang.StringBuilder()
-			if (modifyFileNameState.prefix.isNotEmpty()) {
-				newDisplayName.append(modifyFileNameState.prefix)
-				newDisplayName.append(modifyFileNameState.symbol)
-			}
-			val timeString = TimeUtils.millis2String(formatTime,modifyFileNameState.format)
-			newDisplayName.append(timeString)
-			if (modifiedNameEntity.displayName == newDisplayName.toString()){
-				modifyFileNameState.increaseCurrentIndex()
-				return@forEachIndexed
-			}
-			//paddingValue.put(Media.IS_PENDING,1)
-			contentValues.put(Media.DISPLAY_NAME,newDisplayName.toString())
-			//contentValues.put(Media.IS_PENDING,0)
-			//context.contentResolver.update(Uri.parse(modifiedNameEntity.uri),paddingValue,null,null)
-			val result = context.contentResolver.update(Uri.parse(modifiedNameEntity.uri),contentValues,null,null)
-			if (result > 0){
-				modifyFileNameState.increaseSuccess()
-			}else modifyFileNameState.increaseFailed()
-			modifyFileNameState.increaseCurrentIndex()
 		}
-		modifyFileNameState.taskDone()
 	}
 
-	fun getPhotoByAlbumName(context: Context, albumName: String):List<ModifiedNameEntity>{
+	private suspend fun modifiedFileNamesImpl(context: Context, list: List<ModifiedNameEntity>) {
+
+		list.forEachIndexed { _, modifiedNameEntity ->
+			runCatching {
+				if (modifiedNameEntity.takenTime <= 0) {
+					if (modifyFileNameState.useTaken && modifyFileNameState.skipNoTaken) {
+						mutex.withLock {
+							modifyFileNameState.increaseCurrentIndex()
+							modifyFileNameState.increaseSkipCount()
+							return@forEachIndexed
+						}
+					}
+				}
+				val formatTime =
+					if (modifyFileNameState.useTaken && modifiedNameEntity.takenTime > 0) modifiedNameEntity.takenTime else modifiedNameEntity.modifiedTime
+				val contentValues = ContentValues()
+				val paddingValue = ContentValues()
+				val newDisplayName = java.lang.StringBuilder()
+				if (modifyFileNameState.prefix.isNotEmpty()) {
+					newDisplayName.append(modifyFileNameState.prefix)
+					newDisplayName.append(modifyFileNameState.symbol)
+				}
+				val timeString = TimeUtils.millis2String(formatTime, modifyFileNameState.format)
+				newDisplayName.append(timeString)
+				if (modifiedNameEntity.displayName == newDisplayName.toString()) {
+					mutex.withLock {
+						modifyFileNameState.increaseSuccess()
+						modifyFileNameState.increaseCurrentIndex()
+						return@forEachIndexed
+					}
+				}			//paddingValue.put(Media.IS_PENDING,1)
+				contentValues.put(
+					Media.DISPLAY_NAME,
+					newDisplayName.toString()
+				)			//contentValues.put(Media.IS_PENDING,0)
+				//context.contentResolver.update(Uri.parse(modifiedNameEntity.uri),paddingValue,null,null)
+				val result = context.contentResolver.update(
+					Uri.parse(modifiedNameEntity.uri),
+					contentValues,
+					null,
+					null
+				)
+				mutex.withLock {
+					if (result > 0) {
+						modifyFileNameState.increaseSuccess()
+					} else modifyFileNameState.increaseFailed()
+					modifyFileNameState.increaseCurrentIndex()
+				}
+			}.onFailure {
+				mutex.withLock {
+					modifyFileNameState.increaseFailed()
+					modifyFileNameState.increaseCurrentIndex()
+				}
+			}
+		}
+
+		checkDoen()
+	}
+
+	private fun checkDoen(){
+		if (modifyFileNameState.modifiedFileNameCurrentIndex.value >= modifyFileNameState.modifiedFileNameListCount.value) {
+			modifyFileNameState.taskDone()
+		}
+	}
+
+	fun getPhotoByAlbumName(context: Context, albumName: String): List<ModifiedNameEntity> {
 		val list = mutableListOf<ModifiedNameEntity>()
 		val projection = arrayOf(
-			Media._ID,
-			Media.DISPLAY_NAME,
-			Media.DATE_MODIFIED,
-			Media.DATE_TAKEN
+			Media._ID, Media.DISPLAY_NAME, Media.DATE_MODIFIED, Media.DATE_TAKEN
 		)
 		context.contentResolver.query(
 			Media.EXTERNAL_CONTENT_URI,
@@ -140,7 +192,12 @@ class AlbumViewModel : ViewModel() {
 					val modified = it.getLong(modifiedIndex)
 					val taken = it.getLong(takenIndex)
 					val uri = ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, mediaId)
-					val entity = ModifiedNameEntity(uri = uri.toString(), modifiedTime = modified, displayName = name, takenTime = taken)
+					val entity = ModifiedNameEntity(
+						uri = uri.toString(),
+						modifiedTime = modified,
+						displayName = name,
+						takenTime = taken
+					)
 					list.add(entity)
 				} while (it.moveToNext())
 			}

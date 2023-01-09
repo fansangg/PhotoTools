@@ -23,7 +23,7 @@ class ModifyFileNameState {
 	val modifiedFileNameFieldCount :State<Int> get() = _modifiedFileNameFieldCount
 	private val _modifiedFileNameFieldCount = mutableStateOf(0)
 	val modifiedFileNameCurrentIndex : State<Int> get() = _modifiedFileNameCurrentIndex
-	private val _modifiedFileNameCurrentIndex = mutableStateOf(1)
+	private val _modifiedFileNameCurrentIndex = mutableStateOf(0)
 	val modifiedFileNameListCount : State<Int> get() = _modifiedFileNameListCount
 	private val _modifiedFileNameListCount = mutableStateOf(0)
 	val modifiedFileNameTaskState:State<ModifiedFileTaskState> get()  = _modifiedFileNameTaskState
@@ -76,7 +76,7 @@ class ModifyFileNameState {
 	fun resetAll(){
 		_modifiedFileNameSuccessCount.value = 0
 		_modifiedFileNameFieldCount.value = 0
-		_modifiedFileNameCurrentIndex.value = 1
+		_modifiedFileNameCurrentIndex.value = 0
 		_modifiedFileNameListCount.value = 0
 		_modifiedFileNameSkipCount.value = 0
 		_modifiedFileNameTaskState.value = ModifiedFileTaskState.Idel

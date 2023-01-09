@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -45,7 +46,7 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
  *@version 2022/12/26
  */
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun AlbumPage(navHostController: NavHostController, type: String) {
 	val context = LocalContext.current
@@ -148,41 +149,45 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 							viewModel.modifyFileNameState.showWarningState.value -> {
 								val dateSource =
 									if (viewModel.modifyFileNameState.useTaken) "元数据日期" else "修改日期"
-								TipDialog(tips = "即将开始批量重命名照片名称\n\n修改范围: '${viewModel.modifyFileNameState.selectedAlbumName}'\n日期来源: '$dateSource'\n\n是否继续执行此操作？",
-								          confirmText = "继续执行",
-								          showCancel = true,
-								          icons = Icons.Default.Warning,
-								          click = {
-									          val uriList = viewModel.getPhotoByAlbumName(
-										          context,
-										          viewModel.modifyFileNameState.selectedAlbumName
-									          ).map {
+								DialogWrapper(dismissOnBackPress = true) {
+									TipDialog(tips = "即将开始批量重命名照片名称\n\n修改范围: '${viewModel.modifyFileNameState.selectedAlbumName}'\n日期来源: '$dateSource'\n\n是否继续执行此操作？",
+									          confirmText = "继续执行",
+									          showCancel = true,
+									          icons = Icons.Default.Warning,
+									          click = {
+										          val uriList = viewModel.getPhotoByAlbumName(
+											          context,
+											          viewModel.modifyFileNameState.selectedAlbumName
+										          ).map {
 											          Uri.parse(it.uri)
 										          }
-									          val pendingIntent = createWriteRequest(
-										          context.contentResolver,
-										          uriList
-									          )
-									          launcher.launch(
-										          IntentSenderRequest.Builder(pendingIntent).build()
-									          )
-								          },
-								          cancelClick = {
-									          viewModel.modifyFileNameState.dismissWarning()
-								          })
+										          val pendingIntent = createWriteRequest(
+											          context.contentResolver,
+											          uriList
+										          )
+										          launcher.launch(
+											          IntentSenderRequest.Builder(pendingIntent).build()
+										          )
+									          },
+									          cancelClick = {
+										          viewModel.modifyFileNameState.dismissWarning()
+									          })
+								}
 							}
 						}
 
 						when (viewModel.modifyFileNameState.modifiedFileNameTaskState.value) {
 							is ModifiedFileTaskState.InProgress, is ModifiedFileTaskState.Done -> {
-								FixLoading(
-									isDone = viewModel.modifyFileNameState.modifiedFileNameTaskState.value is ModifiedFileTaskState.Done,
-									content = "${viewModel.modifyFileNameState.modifiedFileNameCurrentIndex.value}/${viewModel.modifyFileNameState.modifiedFileNameListCount.value}",
-									successCount = viewModel.modifyFileNameState.modifiedFileNameSuccessCount.value,
-									errorCount = viewModel.modifyFileNameState.modifiedFileNameFieldCount.value,
-									skipCount = viewModel.modifyFileNameState.modifiedFileNameSkipCount.value
-								) {
-									viewModel.modifyFileNameState.resetAll()
+								DialogWrapper {
+									FixLoading(
+										isDone = viewModel.modifyFileNameState.modifiedFileNameTaskState.value is ModifiedFileTaskState.Done,
+										content = "${viewModel.modifyFileNameState.modifiedFileNameCurrentIndex.value}/${viewModel.modifyFileNameState.modifiedFileNameListCount.value}",
+										successCount = viewModel.modifyFileNameState.modifiedFileNameSuccessCount.value,
+										errorCount = viewModel.modifyFileNameState.modifiedFileNameFieldCount.value,
+										skipCount = viewModel.modifyFileNameState.modifiedFileNameSkipCount.value
+									) {
+										viewModel.modifyFileNameState.resetAll()
+									}
 								}
 							}
 
@@ -192,7 +197,9 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 
 				}
 			} else {
-				LoadingStyle2()
+				DialogWrapper {
+					LoadingStyle2()
+				}
 			}
 		} else {
 			val textToShow = if (readPermissionState.shouldShowRationale) {

@@ -25,13 +25,6 @@ import com.fansan.picdatemodify.ui.widgets.SpacerW
 fun TipDialog(
 	tips: String,confirmText:String = "确定" , icons: ImageVector = Icons.Default.DoneAll, click: () -> Unit
 ,showCancel:Boolean = false,cancelClick:() -> Unit = {}) {
-	Box(
-		modifier = Modifier
-			.fillMaxSize()
-			.background(color = Color(0x66000000))
-			.clickable(enabled = false, onClick = {}), contentAlignment = Alignment.Center
-	) {
-
 		ElevatedCard(
 			modifier = Modifier
 				.fillMaxWidth(.7f)
@@ -40,7 +33,8 @@ fun TipDialog(
 			Column(
 				modifier = Modifier
 					.fillMaxWidth().wrapContentHeight()
-					.padding(horizontal = 16.dp)
+					.padding(horizontal = 16.dp),
+				horizontalAlignment = Alignment.CenterHorizontally
 			) {
 
 				Icon(
@@ -85,6 +79,4 @@ fun TipDialog(
 				}
 			}
 		}
-
-	}
 }
