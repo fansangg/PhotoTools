@@ -35,7 +35,6 @@ class PhotoPageViewModel:ViewModel() {
 	var successFileList = mutableListOf<String>()
 	var failedCount = 0
 	val errorPhotoList = mutableStateListOf<ImageInfoEntity>()
-	private val mutex = Mutex()
 	val allDone = mutableStateOf(false)
 	val allFixDone = mutableStateOf(false)
 
@@ -120,7 +119,7 @@ class PhotoPageViewModel:ViewModel() {
 		list.forEach { entity ->
 			val file = File(entity.path)
 			val result = file.setLastModified(entity.taken)
-			mutex.withLock {
+			synchronized(this) {
 				currentIndex++
 				currentExecFileName = entity.displayName
 				scanProgress = currentIndex / errorPhotoList.size.toFloat()

@@ -154,7 +154,7 @@ fun FileItemCard(file: File, itemClick: () -> Unit) {
 			verticalAlignment = Alignment.CenterVertically
 		) {
 			Icon(
-				painter = rememberVectorPainter(image = if (file.isDirectory) Icons.Default.Folder else Icons.Default.InsertDriveFile),
+				painter = rememberVectorPainter(image = if (file.isDirectory) Icons.Default.ThumbUp else Icons.Default.ThumbUp),
 				contentDescription = "back"
 			)
 			SpacerW(width = 12.dp)

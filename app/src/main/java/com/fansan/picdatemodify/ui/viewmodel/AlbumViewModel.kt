@@ -18,8 +18,6 @@ import com.fansan.picdatemodify.ui.state.ModifyFileNameState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlin.math.ceil
 
 class AlbumViewModel : ViewModel() {
@@ -31,7 +29,6 @@ class AlbumViewModel : ViewModel() {
 
 	val modifyFileNameState = ModifyFileNameState()
 
-	private val mutex = Mutex()
 
 	fun getAlbums(context: Context) {
 		if (newAlbumMap.isNotEmpty()) return
@@ -110,7 +107,7 @@ class AlbumViewModel : ViewModel() {
 			runCatching {
 				if (modifiedNameEntity.takenTime <= 0) {
 					if (modifyFileNameState.useTaken && modifyFileNameState.skipNoTaken) {
-						mutex.withLock {
+						synchronized(this@AlbumViewModel){
 							modifyFileNameState.increaseCurrentIndex()
 							modifyFileNameState.increaseSkipCount()
 							return@forEachIndexed
@@ -129,7 +126,7 @@ class AlbumViewModel : ViewModel() {
 				val timeString = TimeUtils.millis2String(formatTime, modifyFileNameState.format)
 				newDisplayName.append(timeString)
 				if (modifiedNameEntity.displayName == newDisplayName.toString()) {
-					mutex.withLock {
+					synchronized(this@AlbumViewModel) {
 						modifyFileNameState.increaseSuccess()
 						modifyFileNameState.increaseCurrentIndex()
 						return@forEachIndexed
@@ -146,14 +143,14 @@ class AlbumViewModel : ViewModel() {
 					null,
 					null
 				)
-				mutex.withLock {
+				synchronized(this@AlbumViewModel) {
 					if (result > 0) {
 						modifyFileNameState.increaseSuccess()
 					} else modifyFileNameState.increaseFailed()
 					modifyFileNameState.increaseCurrentIndex()
 				}
 			}.onFailure {
-				mutex.withLock {
+				synchronized(this@AlbumViewModel) {
 					modifyFileNameState.increaseFailed()
 					modifyFileNameState.increaseCurrentIndex()
 				}

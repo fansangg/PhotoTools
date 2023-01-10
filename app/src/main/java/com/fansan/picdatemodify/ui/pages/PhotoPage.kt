@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
@@ -46,6 +45,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.blankj.utilcode.util.GsonUtils
 import com.blankj.utilcode.util.ToastUtils
+import com.fansan.picdatemodify.R
 import com.fansan.picdatemodify.common.*
 import com.fansan.picdatemodify.entity.ImageInfoEntity
 import com.fansan.picdatemodify.router.Router
@@ -177,7 +177,7 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 						TipDialog(tips = "当前结果内所有照片修改日期将同步为照片的元数据日期，是否继续执行此操作？",
 						          confirmText = "继续执行",
 						          showCancel = true,
-						          icons = Icons.Default.Warning,
+						          icons = R.mipmap.warning,
 						          click = {
 							          showWraningTips.value = false
 							          if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
@@ -221,7 +221,7 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 					val tips =
 						if (viewModel.errorPhotoList.isNotEmpty()) "发现${viewModel.errorPhotoList.size}张与元数据日期不同步的照片" else "所有照片修改日期均已和元数据日期同步"
 					val icon =
-						if (viewModel.errorPhotoList.isNotEmpty()) Icons.Default.DoneAll else Icons.Default.ThumbUp
+						if (viewModel.errorPhotoList.isNotEmpty()) R.mipmap.done_all else R.mipmap.thumb_up
 					DialogWrapper{
 						TipDialog(tips = tips, icons = icon, click = {
 							if (viewModel.errorPhotoList.isNotEmpty()) tipDialogShow.value = false

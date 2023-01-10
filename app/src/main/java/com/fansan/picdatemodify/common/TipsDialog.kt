@@ -1,19 +1,18 @@
 package com.fansan.picdatemodify.common
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.fansan.picdatemodify.R
 import com.fansan.picdatemodify.ui.widgets.SpacerW
 
 /**
@@ -23,8 +22,8 @@ import com.fansan.picdatemodify.ui.widgets.SpacerW
 
 @Composable
 fun TipDialog(
-	tips: String,confirmText:String = "确定" , icons: ImageVector = Icons.Default.DoneAll, click: () -> Unit
-,showCancel:Boolean = false,cancelClick:() -> Unit = {}) {
+	tips: String, confirmText:String = "确定", icons: Int = R.mipmap.done_all, click: () -> Unit
+	, showCancel:Boolean = false, cancelClick:() -> Unit = {}) {
 		ElevatedCard(
 			modifier = Modifier
 				.fillMaxWidth(.7f)
@@ -38,7 +37,7 @@ fun TipDialog(
 			) {
 
 				Icon(
-					painter = rememberVectorPainter(image = icons),
+					painter = painterResource(id = icons),
 					contentDescription = "icons",
 					modifier = Modifier
 						.fillMaxWidth(.3f)
