@@ -1,8 +1,12 @@
 package com.fansan.picdatemodify.ui.pages
 
+import android.Manifest
 import android.app.Activity
+import android.content.Context
+import android.content.pm.PackageManager
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore.createWriteRequest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -23,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.blankj.utilcode.util.ConvertUtils
@@ -48,23 +53,28 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 
 	val context = LocalContext.current
 
-	var lastModifyTime by remember {
+	val lastModifyTime = remember {
 		mutableStateOf(info.lastModified * 1000)
 	}
+
+	val writePermission = rememberLauncherForActivityResult(
+		contract = ActivityResultContracts.RequestPermission(),
+		onResult = {
+			if (it){
+				asyncDate(file, info, lastModifyTime, context, navHostController)
+			}else{
+				ToastUtils.showShort("请允许权限来同步日期")
+			}
+		}
+	)
+
 	val launcher = rememberLauncherForActivityResult(
 		contract = ActivityResultContracts.StartIntentSenderForResult(),
 		onResult = {
 			if (it.resultCode == Activity.RESULT_OK) {
-				val result = fixFunc(file, info.taken)
-				if (result) lastModifyTime = info.taken
-				MediaScannerConnection.scanFile(
-					context, arrayOf(info.path), null
-				) { _, _ ->
-
-				}
-				navHostController.previousBackStackEntry?.savedStateHandle?.set("path",info.path)
+				asyncDate(file, info, lastModifyTime, context, navHostController)
 			} else {
-				ToastUtils.showShort("请允许修改此照片")
+				ToastUtils.showShort("请允许修改来同步日期")
 			}
 		})
 
@@ -148,7 +158,7 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 				SpacerW(width = 12.dp)
 				Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
 					Text(
-						text = TimeUtils.millis2String(lastModifyTime),
+						text = TimeUtils.millis2String(lastModifyTime.value),
 						fontWeight = FontWeight.SemiBold,
 						fontSize = 16.sp
 					)
@@ -158,28 +168,52 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 				}
 			}
 
-			if (lastModifyTime != info.taken) {
+			if (lastModifyTime.value != info.taken) {
 				SpacerH(height = 24.dp)
-				CommonButton(content = "修复",modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+				CommonButton(content = "同步日期",modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
 					if (file.canWrite()) {
-						val result = fixFunc(file, info.taken)
-						if (result) lastModifyTime = info.taken
-						MediaScannerConnection.scanFile(
-							context, arrayOf(info.path), null
-						) { _, _ ->
-
-						}
-						navHostController.previousBackStackEntry?.savedStateHandle?.set("path",info.path)
+						asyncDate(file, info, lastModifyTime, context, navHostController)
 					} else {
-						val editPendingIntent =
-							createWriteRequest(context.contentResolver, listOf(Uri.parse(info.uri)))
-						launcher.launch(IntentSenderRequest.Builder(editPendingIntent).build())
+						if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+							val result = ContextCompat.checkSelfPermission(
+								context,
+								Manifest.permission.WRITE_EXTERNAL_STORAGE
+							)
+							if (result == PackageManager.PERMISSION_GRANTED) {
+								asyncDate(file, info, lastModifyTime, context, navHostController)
+							} else {
+								writePermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+							}
+						}else {
+							val editPendingIntent = createWriteRequest(
+								context.contentResolver,
+								listOf(Uri.parse(info.uri))
+							)
+							launcher.launch(IntentSenderRequest.Builder(editPendingIntent).build())
+						}
 					}
 				}
 			}
 		}
 
 	}
+}
+
+private fun asyncDate(
+	file: File,
+	info: ImageInfoEntity,
+	lastModifyTime: MutableState<Long>,
+	context: Context,
+	navHostController: NavHostController
+) {
+	val result = fixFunc(file, info.taken)
+	if (result) lastModifyTime.value = info.taken
+	MediaScannerConnection.scanFile(
+		context, arrayOf(info.path), null
+	) { _, _ ->
+
+	}
+	navHostController.previousBackStackEntry?.savedStateHandle?.set("path", info.path)
 }
 
 private fun fixFunc(file: File, time: Long): Boolean {

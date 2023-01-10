@@ -1,8 +1,13 @@
 package com.fansan.picdatemodify.ui.pages
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -34,17 +39,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.blankj.utilcode.util.GsonUtils
+import com.blankj.utilcode.util.ToastUtils
 import com.fansan.picdatemodify.common.*
 import com.fansan.picdatemodify.entity.ImageInfoEntity
 import com.fansan.picdatemodify.router.Router
 import com.fansan.picdatemodify.ui.viewmodel.PhotoPageViewModel
 import com.fansan.picdatemodify.ui.widgets.SpacerH
 import com.fansan.picdatemodify.ui.widgets.TitleColumn
+import com.fansan.picdatemodify.util.rememberMutableStateOf
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 
 /**
  *@author  fansan
@@ -58,6 +69,19 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 	val tipDialogShow = rememberSaveable {
 		mutableStateOf(true)
 	}
+
+
+	val writePermission = rememberLauncherForActivityResult(
+		contract = ActivityResultContracts.RequestPermission(),
+		onResult = {
+			if (it){
+				viewModel.fixAll()
+			}else{
+				ToastUtils.showShort("请允许权限来同步日期")
+			}
+		}
+	)
+
 	val resultState = navHostController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("path")?.observeAsState()
 	resultState?.value?.let {
 		viewModel.errorPhotoList.removeIf { entity ->
@@ -156,13 +180,23 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 						          icons = Icons.Default.Warning,
 						          click = {
 							          showWraningTips.value = false
-							          val uriList = viewModel.errorPhotoList.map {
-								          Uri.parse(it.uri)
+							          if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
+								          val result = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+								          if (result == PackageManager.PERMISSION_GRANTED){
+									          viewModel.fixAll()
+								          }else{
+									          writePermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+								          }
+							          }else{
+								          val uriList = viewModel.errorPhotoList.map {
+									          Uri.parse(it.uri)
+								          }
+								          val intent = MediaStore.createWriteRequest(
+									          context.contentResolver, uriList
+								          )
+								          launcher.launch(IntentSenderRequest.Builder(intent).build())
 							          }
-							          val intent = MediaStore.createWriteRequest(
-								          context.contentResolver, uriList
-							          )
-							          launcher.launch(IntentSenderRequest.Builder(intent).build())
 						          },
 						          cancelClick = {
 							          showWraningTips.value = false
@@ -204,6 +238,7 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 }
 
 
+@Deprecated("old design")
 @Composable
 fun AnalysisDialog(
 	progress: Float,
@@ -288,19 +323,5 @@ fun ImageItem(info: ImageInfoEntity, click: () -> Unit) {
 			contentScale = ContentScale.Crop,
 			filterQuality = FilterQuality.None
 		)
-	}
-}
-
-@Composable
-@Preview
-fun PreviewDialog() {
-	AnalysisDialog(
-		progress = 1f,
-		currentIndex = 1,
-		total = 100,
-		findSize = 10,
-		currentFileName = "hahahhahahahsdhahda.jpg"
-	) {
-
 	}
 }
