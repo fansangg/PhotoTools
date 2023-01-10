@@ -34,6 +34,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.airbnb.lottie.compose.*
 import com.blankj.utilcode.util.ToastUtils
+import com.fansan.picdatemodify.R
 import com.fansan.picdatemodify.common.*
 import com.fansan.picdatemodify.entity.AlbumType
 import com.fansan.picdatemodify.entity.NewAlbumEntity
@@ -167,17 +168,17 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 									TipDialog(tips = "即将开始批量重命名照片名称\n\n修改范围: '${viewModel.modifyFileNameState.selectedAlbumName}'\n日期来源: '$dateSource'\n\n是否继续执行此操作？",
 									          confirmText = "继续执行",
 									          showCancel = true,
-									          icons = Icons.Default.Warning,
+									          icons = R.mipmap.warning,
 									          click = {
 										          if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
-													  val result =
-														  ContextCompat.checkSelfPermission(context,Manifest.permission.WRITE_EXTERNAL_STORAGE)
+													  /*val result = ContextCompat.checkSelfPermission(context,Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
 											          if (result == PackageManager.PERMISSION_GRANTED){
 												          modifiedNameStart(viewModel, context)
 											          }else{
 														  writePermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-											          }
+											          }*/
+											          modifiedNameStart(viewModel, context)
 										          }else{
 											          val uriList = viewModel.getPhotoByAlbumName(
 												          context,

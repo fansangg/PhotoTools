@@ -13,8 +13,6 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.EditCalendar
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -24,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,6 +32,7 @@ import coil.compose.AsyncImage
 import com.blankj.utilcode.util.ConvertUtils
 import com.blankj.utilcode.util.TimeUtils
 import com.blankj.utilcode.util.ToastUtils
+import com.fansan.picdatemodify.R
 import com.fansan.picdatemodify.common.CommonButton
 import com.fansan.picdatemodify.entity.ImageInfoEntity
 import com.fansan.picdatemodify.ui.widgets.SpacerH
@@ -89,7 +89,7 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 				.padding(horizontal = 12.dp),
 			verticalAlignment = Alignment.CenterVertically
 		) {
-			Icon(imageVector = Icons.Default.Image, contentDescription = "img")
+			Icon(painter = painterResource(id = R.mipmap.image), contentDescription = "img")
 			SpacerW(width = 12.dp)
 			Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
 				Text(text = info.displayName, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
@@ -134,7 +134,7 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 				.padding(horizontal = 12.dp),
 			verticalAlignment = Alignment.CenterVertically
 		) {
-			Icon(imageVector = Icons.Default.EditCalendar, contentDescription = "img")
+			Icon(painter = painterResource(id = R.mipmap.edie_calendar), contentDescription = "img")
 			SpacerW(width = 12.dp)
 			Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
 				Text(
@@ -154,7 +154,7 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 					.padding(horizontal = 12.dp),
 				verticalAlignment = Alignment.CenterVertically
 			) {
-				Icon(imageVector = Icons.Default.EditCalendar, contentDescription = "img")
+				Icon(painter = painterResource(id = R.mipmap.edie_calendar), contentDescription = "img")
 				SpacerW(width = 12.dp)
 				Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
 					Text(
