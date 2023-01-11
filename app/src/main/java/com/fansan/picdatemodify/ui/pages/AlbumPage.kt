@@ -66,18 +66,6 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 		) else listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
 	)
 
-	val writePermission = rememberLauncherForActivityResult(
-		contract = ActivityResultContracts.RequestPermission(),
-		onResult = {
-			/*if (it){
-
-			}else{
-				ToastUtils.showShort("请允许权限来重命名照片")
-			}*/
-			modifiedNameStart(viewModel,context)
-		}
-	)
-
 	if (readPermissionState.allPermissionsGranted) {
 		viewModel.getAlbums(context)
 	}
@@ -170,30 +158,19 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 									          showCancel = true,
 									          icons = R.mipmap.warning,
 									          click = {
-										          if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
-													  /*val result = ContextCompat.checkSelfPermission(context,Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-											          if (result == PackageManager.PERMISSION_GRANTED){
-												          modifiedNameStart(viewModel, context)
-											          }else{
-														  writePermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-											          }*/
-											          modifiedNameStart(viewModel, context)
-										          }else{
-											          val uriList = viewModel.getPhotoByAlbumName(
-												          context,
-												          viewModel.modifyFileNameState.selectedAlbumName
-											          ).map {
-												          Uri.parse(it.uri)
-											          }
-											          val pendingIntent = createWriteRequest(
-												          context.contentResolver,
-												          uriList
-											          )
-											          launcher.launch(
-												          IntentSenderRequest.Builder(pendingIntent).build()
-											          )
+										          val uriList = viewModel.getPhotoByAlbumName(
+											          context,
+											          viewModel.modifyFileNameState.selectedAlbumName
+										          ).map {
+											          Uri.parse(it.uri)
 										          }
+										          val pendingIntent = createWriteRequest(
+											          context.contentResolver,
+											          uriList
+										          )
+										          launcher.launch(
+											          IntentSenderRequest.Builder(pendingIntent).build()
+										          )
 									          },
 									          cancelClick = {
 										          viewModel.modifyFileNameState.dismissWarning()
