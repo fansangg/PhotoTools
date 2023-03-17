@@ -75,7 +75,7 @@ class PhotoPageViewModel:ViewModel() {
 
 						val taken = it.getLong(takenIndex)
 						val modified = it.getLong(modifiedIndex)
-						if (taken <= 0L || abs(modified * 1000 - taken) < 1000 )
+						if (taken <= 0L || abs(modified * 1000 - taken) < 1000 * 60 )
 							continue
 						val data = it.getString(dataIndex)
 						val added = it.getLong(addedIndex)

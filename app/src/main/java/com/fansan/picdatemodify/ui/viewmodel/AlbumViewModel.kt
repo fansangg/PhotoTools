@@ -115,7 +115,7 @@ class AlbumViewModel : ViewModel() {
 					}
 				}
 				val formatTime =
-					if (modifyFileNameState.useTaken && modifiedNameEntity.takenTime > 0) modifiedNameEntity.takenTime else modifiedNameEntity.modifiedTime
+					if (modifyFileNameState.useTaken && modifiedNameEntity.takenTime > 0) modifiedNameEntity.takenTime else modifiedNameEntity.modifiedTime * 1000
 				val contentValues = ContentValues()
 				val paddingValue = ContentValues()
 				val newDisplayName = java.lang.StringBuilder()

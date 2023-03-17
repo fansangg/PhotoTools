@@ -56,12 +56,14 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 	}
 
 
-	val resultState = navHostController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("path")?.observeAsState()
+	val resultState =
+		navHostController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("path")
+			?.observeAsState()
 	resultState?.value?.let {
 		viewModel.errorPhotoList.removeIf { entity ->
 			entity.path == it
 		}
-		if (viewModel.errorPhotoList.isEmpty()){
+		if (viewModel.errorPhotoList.isEmpty()) {
 			tipDialogShow.value = true
 		}
 		navHostController.currentBackStackEntry?.savedStateHandle?.remove<String>("path")
@@ -87,10 +89,9 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 		}
 	}
 
-	val launcher =
-		writeRequest(){
-			viewModel.fixAll()
-		}
+	val launcher = writeRequest() {
+		viewModel.fixAll()
+	}
 
 	val showWraningTips = rememberSaveable {
 		mutableStateOf(false)
@@ -114,7 +115,7 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 					items(viewModel.errorPhotoList, key = { it.path }) {
 						ImageItem(info = it) {
 							navHostController.navigate(
-								"${Router.exifInfo}/${
+								"${Router.details}/${
 									Uri.encode(
 										GsonUtils.toJson(
 											it
@@ -147,7 +148,7 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 				}
 
 				if (showWraningTips.value) {
-					DialogWrapper(dismissOnBackPress = true){
+					DialogWrapper(dismissOnBackPress = true) {
 						TipDialog(tips = "当前结果内所有照片修改日期将同步为照片的元数据日期，是否继续执行此操作？",
 						          confirmText = "继续执行",
 						          showCancel = true,
@@ -188,7 +189,7 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 						if (viewModel.errorPhotoList.isNotEmpty()) "发现${viewModel.errorPhotoList.size}张与元数据日期不同步的照片" else "所有照片修改日期均已和元数据日期同步"
 					val icon =
 						if (viewModel.errorPhotoList.isNotEmpty()) R.mipmap.done_all else R.mipmap.thumb_up
-					DialogWrapper{
+					DialogWrapper {
 						TipDialog(tips = tips, icons = icon, click = {
 							if (viewModel.errorPhotoList.isNotEmpty()) tipDialogShow.value = false
 							else {
