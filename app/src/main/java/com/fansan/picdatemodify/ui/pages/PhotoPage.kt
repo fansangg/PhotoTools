@@ -1,13 +1,8 @@
 package com.fansan.picdatemodify.ui.pages
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.provider.MediaStore
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -17,9 +12,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ThumbUp
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
@@ -35,16 +27,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.blankj.utilcode.util.GsonUtils
-import com.blankj.utilcode.util.ToastUtils
 import com.fansan.picdatemodify.R
 import com.fansan.picdatemodify.common.*
 import com.fansan.picdatemodify.entity.ImageInfoEntity
@@ -52,10 +41,6 @@ import com.fansan.picdatemodify.router.Router
 import com.fansan.picdatemodify.ui.viewmodel.PhotoPageViewModel
 import com.fansan.picdatemodify.ui.widgets.SpacerH
 import com.fansan.picdatemodify.ui.widgets.TitleColumn
-import com.fansan.picdatemodify.util.rememberMutableStateOf
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 
 /**
  *@author  fansan
@@ -70,17 +55,6 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 		mutableStateOf(true)
 	}
 
-
-	val writePermission = rememberLauncherForActivityResult(
-		contract = ActivityResultContracts.RequestPermission(),
-		onResult = {
-			if (it){
-				viewModel.fixAll()
-			}else{
-				ToastUtils.showShort("请允许权限来同步日期")
-			}
-		}
-	)
 
 	val resultState = navHostController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("path")?.observeAsState()
 	resultState?.value?.let {
@@ -140,7 +114,7 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 					items(viewModel.errorPhotoList, key = { it.path }) {
 						ImageItem(info = it) {
 							navHostController.navigate(
-								"${Router.details}/${
+								"${Router.exifInfo}/${
 									Uri.encode(
 										GsonUtils.toJson(
 											it
@@ -180,23 +154,13 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 						          icons = R.mipmap.warning,
 						          click = {
 							          showWraningTips.value = false
-							          if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
-								          val result = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-								          if (result == PackageManager.PERMISSION_GRANTED){
-									          viewModel.fixAll()
-								          }else{
-									          writePermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-								          }
-							          }else{
-								          val uriList = viewModel.errorPhotoList.map {
-									          Uri.parse(it.uri)
-								          }
-								          val intent = MediaStore.createWriteRequest(
-									          context.contentResolver, uriList
-								          )
-								          launcher.launch(IntentSenderRequest.Builder(intent).build())
+							          val uriList = viewModel.errorPhotoList.map {
+								          Uri.parse(it.uri)
 							          }
+							          val intent = MediaStore.createWriteRequest(
+								          context.contentResolver, uriList
+							          )
+							          launcher.launch(IntentSenderRequest.Builder(intent).build())
 						          },
 						          cancelClick = {
 							          showWraningTips.value = false
@@ -205,15 +169,17 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 				}
 
 				if (inProgress.value || viewModel.allFixDone.value) {
-					FixLoading(
-						isDone = viewModel.allFixDone.value,
-						content = "${viewModel.currentIndex}/${viewModel.errorPhotoList.size}\n${viewModel.currentExecFileName}",
-						successCount = viewModel.successFileList.size,
-						errorCount = viewModel.failedCount
-					) {
-						viewModel.scanFile(context)
-						viewModel.allFixDone.value = false
-						tipDialogShow.value = true
+					DialogWrapper {
+						FixLoading(
+							isDone = viewModel.allFixDone.value,
+							content = "${viewModel.currentIndex}/${viewModel.errorPhotoList.size}\n${viewModel.currentExecFileName}",
+							successCount = viewModel.successFileList.size,
+							errorCount = viewModel.failedCount
+						) {
+							viewModel.scanFile(context)
+							viewModel.allFixDone.value = false
+							tipDialogShow.value = true
+						}
 					}
 				}
 
@@ -225,7 +191,10 @@ fun PhotoPage(navHostController: NavHostController, albumName: String) {
 					DialogWrapper{
 						TipDialog(tips = tips, icons = icon, click = {
 							if (viewModel.errorPhotoList.isNotEmpty()) tipDialogShow.value = false
-							else navHostController.popBackStack()
+							else {
+								tipDialogShow.value = false
+								navHostController.popBackStack()
+							}
 						})
 					}
 				}

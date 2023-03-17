@@ -1,21 +1,20 @@
 package com.fansan.picdatemodify.ui.pages
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
-import android.content.pm.PackageManager
 import android.media.MediaScannerConnection
 import android.net.Uri
-import android.os.Build
 import android.provider.MediaStore.createWriteRequest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,7 +25,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.blankj.utilcode.util.ConvertUtils
@@ -56,17 +54,6 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 	val lastModifyTime = remember {
 		mutableStateOf(info.lastModified * 1000)
 	}
-
-	val writePermission = rememberLauncherForActivityResult(
-		contract = ActivityResultContracts.RequestPermission(),
-		onResult = {
-			if (it){
-				asyncDate(file, info, lastModifyTime, context, navHostController)
-			}else{
-				ToastUtils.showShort("请允许权限来同步日期")
-			}
-		}
-	)
 
 	val launcher = rememberLauncherForActivityResult(
 		contract = ActivityResultContracts.StartIntentSenderForResult(),
@@ -174,23 +161,10 @@ fun DetailsPage(navHostController: NavHostController, info: ImageInfoEntity) {
 					if (file.canWrite()) {
 						asyncDate(file, info, lastModifyTime, context, navHostController)
 					} else {
-						if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-							val result = ContextCompat.checkSelfPermission(
-								context,
-								Manifest.permission.WRITE_EXTERNAL_STORAGE
-							)
-							if (result == PackageManager.PERMISSION_GRANTED) {
-								asyncDate(file, info, lastModifyTime, context, navHostController)
-							} else {
-								writePermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-							}
-						}else {
-							val editPendingIntent = createWriteRequest(
-								context.contentResolver,
-								listOf(Uri.parse(info.uri))
-							)
-							launcher.launch(IntentSenderRequest.Builder(editPendingIntent).build())
-						}
+						val editPendingIntent = createWriteRequest(
+							context.contentResolver, listOf(Uri.parse(info.uri))
+						)
+						launcher.launch(IntentSenderRequest.Builder(editPendingIntent).build())
 					}
 				}
 			}

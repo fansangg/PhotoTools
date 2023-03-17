@@ -9,4 +9,5 @@ object Router{
 	val album = "album"
 	val photoPage = "photoPage"
 	val details = "details"
+	val exifInfo = "exifInfo"
 }

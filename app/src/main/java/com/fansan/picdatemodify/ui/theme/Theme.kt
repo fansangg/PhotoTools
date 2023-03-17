@@ -4,7 +4,6 @@ import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import com.blankj.utilcode.util.ToastUtils
@@ -35,7 +34,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun ExifFIXTheme(
+fun PhotoToolsTheme(
 	darkTheme: Boolean = isSystemInDarkTheme(), // Dynamic color is available on Android 12+
 	dynamicColor: Boolean = false, content: @Composable () -> Unit
 ) {
@@ -48,6 +47,9 @@ fun ExifFIXTheme(
 		darkTheme -> DarkColorScheme
 		else -> LightColorScheme
 	}
+
+	ToastUtils.getDefaultMaker().setTextColor(colorScheme.onBackground.toArgb())
+		.setBgColor(colorScheme.secondary.toArgb())
 
 	MaterialTheme(
 		colorScheme = colorScheme, typography = Typography, content = content

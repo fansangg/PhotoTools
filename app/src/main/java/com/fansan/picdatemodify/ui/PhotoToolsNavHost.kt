@@ -22,7 +22,7 @@ import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun ExifFIXNavHost(
+fun PhotoToolsNavHost(
 	modifier: Modifier,
 	navController: NavHostController = rememberAnimatedNavController()
 ) {
@@ -76,6 +76,12 @@ fun ExifFIXNavHost(
 		) {
 			val data = it.arguments?.getString("albumName") ?: "_allImgs"
 			PhotoPage(navHostController = navController, albumName = data)
+		}
+
+		defaultAnimComposable("${Router.exifInfo}/{data}", arguments = listOf(navArgument("data") {})){
+			val data = it.arguments?.getString("data") ?: ""
+			val entity = GsonUtils.fromJson(data, ImageInfoEntity::class.java)
+			ExifDetailsPage(navHostController = navController, info = entity)
 		}
 	}
 }
