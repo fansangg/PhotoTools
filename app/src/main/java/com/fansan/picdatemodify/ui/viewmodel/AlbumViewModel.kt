@@ -174,8 +174,8 @@ class AlbumViewModel : ViewModel() {
 		context.contentResolver.query(
 			Media.EXTERNAL_CONTENT_URI,
 			projection,
-			"${Media.BUCKET_DISPLAY_NAME}=?",
-			arrayOf(albumName),
+			if (albumName != "all") "${MediaStore.Images.Media.BUCKET_DISPLAY_NAME}=?" else null,
+			if (albumName != "all") arrayOf(albumName) else null,
 			null
 		)?.use {
 			if (it.moveToFirst()) {
