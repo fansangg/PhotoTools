@@ -3,11 +3,9 @@ package com.fansan.picdatemodify.ui.pages
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -24,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.fansan.picdatemodify.common.noRippleClick
 import com.fansan.picdatemodify.entity.ImageInfoEntity
 import com.fansan.picdatemodify.ui.viewmodel.ChooseRenameViewModel
 import com.fansan.picdatemodify.ui.widgets.SpacerW
