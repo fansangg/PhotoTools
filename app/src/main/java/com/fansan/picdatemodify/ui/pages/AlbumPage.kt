@@ -103,7 +103,7 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 										}
 										AlbumType.FILENAME.name -> {
 											viewModel.modifyFileNameState.selectedAlbumName = "all"
-											viewModel.modifyFileNameState.showDialog()
+											viewModel.modifyFileNameState.showFuncSelect()
 										}
 										else -> {}
 									}
@@ -120,7 +120,7 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 										AlbumType.FILENAME.name -> {
 											viewModel.modifyFileNameState.selectedAlbumName =
 												entity.albumName
-											viewModel.modifyFileNameState.showDialog()
+											viewModel.modifyFileNameState.showFuncSelect()
 										}
 										else -> {}
 									}
@@ -149,6 +149,25 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 								}
 							}
 
+							viewModel.modifyFileNameState.showFuncState.value -> {
+								DialogWrapper(dismissOnBackPress = true, dismissOnClickOutside = true, dismiss = {
+									viewModel.modifyFileNameState.dissmissFuncSelect()
+								}) {
+									ChooseFuncDialog(content = "请选择要执行的方式", funcList = listOf("单个文件修改","批量修改")) {
+										viewModel.modifyFileNameState.dissmissFuncSelect()
+										when(it){
+											0 -> {
+												navHostController.navigate("${Router.chooseRename}/${viewModel.modifyFileNameState.selectedAlbumName}")
+											}
+
+											1 -> {
+												viewModel.modifyFileNameState.showDialog()
+											}
+										}
+									}
+								}
+							}
+
 							viewModel.modifyFileNameState.showWarningState.value -> {
 								val dateSource =
 									if (viewModel.modifyFileNameState.useTaken) "元数据日期" else "修改日期"
@@ -171,6 +190,7 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 										          launcher.launch(
 											          IntentSenderRequest.Builder(pendingIntent).build()
 										          )
+										          viewModel.modifyFileNameState.dismissWarning()
 									          },
 									          cancelClick = {
 										          viewModel.modifyFileNameState.dismissWarning()
@@ -249,7 +269,7 @@ private fun modifiedNameStart(
 ) {
 	viewModel.modifyFileNameState.taskInProgress()
 	viewModel.modifiedFileNames(context)
-	viewModel.modifyFileNameState.dismissWarning()
+	//viewModel.modifyFileNameState.dismissWarning()
 }
 
 

@@ -13,6 +13,9 @@ class ModifyFileNameState {
 	val showDialogState: State<Boolean> get() = _showDialogState
 	private val _showDialogState = mutableStateOf(false)
 
+	val showFuncState: State<Boolean> get() = _showFuncState
+	private val _showFuncState = mutableStateOf(false)
+
 	val showWarningState: State<Boolean> get() = _showWarningState
 	private val _showWarningState = mutableStateOf(false)
 
@@ -28,6 +31,14 @@ class ModifyFileNameState {
 	private val _modifiedFileNameListCount = mutableStateOf(0)
 	val modifiedFileNameTaskState:State<ModifiedFileTaskState> get()  = _modifiedFileNameTaskState
 	private val _modifiedFileNameTaskState:MutableState<ModifiedFileTaskState> = mutableStateOf(ModifiedFileTaskState.Idel)
+
+	fun showFuncSelect(){
+		_showFuncState.value = true
+	}
+
+	fun dissmissFuncSelect(){
+		_showFuncState.value = false
+	}
 
 	fun showDialog(){
 		_showDialogState.value = true

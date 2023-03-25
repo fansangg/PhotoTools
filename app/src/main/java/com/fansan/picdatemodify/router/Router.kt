@@ -10,4 +10,5 @@ object Router{
 	val photoPage = "photoPage"
 	val details = "details"
 	val exifInfo = "exifInfo"
+	val chooseRename = "chooseRename"
 }

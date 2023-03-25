@@ -9,4 +9,4 @@ import kotlinx.parcelize.Parcelize
  */
 
 @Parcelize
-data class ImageInfoEntity(val displayName:String,val width:Int,val height:Int,val taken:Long,val lastModified:Long,val path:String,val size:Long,val uri:String,val added:Long):Parcelable
+data class ImageInfoEntity(val displayName:String,val width:Int,val height:Int,val taken:Long,val lastModified:Long,val path:String,val size:Long,val uri:String,val added:Long,val selected:Boolean = false):Parcelable

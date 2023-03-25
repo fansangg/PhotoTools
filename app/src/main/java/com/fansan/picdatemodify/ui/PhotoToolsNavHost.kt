@@ -83,6 +83,11 @@ fun PhotoToolsNavHost(
 			val entity = GsonUtils.fromJson(data, ImageInfoEntity::class.java)
 			ExifDetailsPage(navHostController = navController, info = entity)
 		}
+
+		defaultAnimComposable("${Router.chooseRename}/{albumName}", arguments = listOf(navArgument("albumName"){})){
+			val data = it.arguments?.getString("albumName") ?: "_allImgs"
+			ChooseRenamePage(navHostController = navController, albumName = data)
+		}
 	}
 }
 
