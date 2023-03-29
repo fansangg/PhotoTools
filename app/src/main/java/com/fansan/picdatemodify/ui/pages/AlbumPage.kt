@@ -153,7 +153,7 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 								DialogWrapper(dismissOnBackPress = true, dismissOnClickOutside = true, dismiss = {
 									viewModel.modifyFileNameState.dissmissFuncSelect()
 								}) {
-									ChooseFuncDialog(content = "请选择要执行的方式", funcList = listOf("单个文件修改","批量修改")) {
+									ChooseFuncDialog(content = "请选择要执行的方式", funcList = listOf("选择文件修改","批量修改")) {
 										viewModel.modifyFileNameState.dissmissFuncSelect()
 										when(it){
 											0 -> {

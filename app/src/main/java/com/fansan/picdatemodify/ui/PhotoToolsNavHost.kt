@@ -4,16 +4,21 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.*
 import com.google.accompanist.navigation.animation.composable
 import com.blankj.utilcode.util.GsonUtils
+import com.fansan.picdatemodify.common.logd
 import com.fansan.picdatemodify.entity.*
 import com.fansan.picdatemodify.router.Router
 import com.fansan.picdatemodify.ui.pages.*
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 /**
  *@author  fansan

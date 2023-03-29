@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.fansan.picdatemodify.R
+import com.fansan.picdatemodify.common.logd
 import com.fansan.picdatemodify.ui.theme.splashFont
 import com.fansan.picdatemodify.ui.widgets.SpacerH
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -34,9 +35,10 @@ fun SplashScreen(navController: NavController) {
 
 	val statusBarColor = MaterialTheme.colorScheme.background
 	val systemUiController = rememberSystemUiController()
-	SideEffect {
+	DisposableEffect(key1 = systemUiController, effect = {
 		systemUiController.setStatusBarColor(statusBarColor)
-	}
+		onDispose {  }
+	})
 
 	androidx.activity.compose.BackHandler(true) {
 
@@ -57,7 +59,8 @@ fun SplashScreen(navController: NavController) {
 			contentDescription = "logo",
 			modifier = Modifier
 				.size(120.dp)
-				.alpha(alphaAnim.value).clip(RoundedCornerShape(24.dp)),
+				.alpha(alphaAnim.value)
+				.clip(RoundedCornerShape(24.dp)),
 			contentScale = ContentScale.Crop
 		)
 

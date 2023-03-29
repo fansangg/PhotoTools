@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.fansan.picdatemodify.common.logd
 import com.fansan.picdatemodify.entity.ImageInfoEntity
+import com.fansan.picdatemodify.ui.state.ModifyFileNameState
 import kotlin.math.abs
 
 /**
@@ -21,6 +22,7 @@ class ChooseRenameViewModel:ViewModel() {
 
 	val photos = mutableStateListOf<ImageInfoEntity>()
 	var queryDone by mutableStateOf(false)
+	val modifyFileNameState = ModifyFileNameState()
 
 	fun getPhotos(context: Context, name: String) {
 		photos.clear()

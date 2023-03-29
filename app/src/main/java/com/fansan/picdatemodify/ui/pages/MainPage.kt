@@ -3,6 +3,7 @@ package com.fansan.picdatemodify.ui.pages
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -18,6 +19,7 @@ import androidx.navigation.NavHostController
 import com.blankj.utilcode.util.ClickUtils
 import com.fansan.picdatemodify.R
 import com.fansan.picdatemodify.common.Constants
+import com.fansan.picdatemodify.common.logd
 import com.fansan.picdatemodify.entity.AlbumType
 import com.fansan.picdatemodify.entity.MainFuncBean
 import com.fansan.picdatemodify.router.Router
@@ -33,8 +35,9 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 fun MainPage(navHostController: NavHostController) {
 	val statusBarColor = colorScheme.primary
 	val systemUiController = rememberSystemUiController()
-	SideEffect {
+	DisposableEffect(key1 = systemUiController) {
 		systemUiController.setStatusBarColor(statusBarColor)
+		onDispose {  }
 	}
 	BackHandler()
 	val itemList = remember {
