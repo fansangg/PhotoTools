@@ -101,7 +101,7 @@ class AlbumViewModel : ViewModel() {
 		}
 	}
 
-	private suspend fun modifiedFileNamesImpl(context: Context, list: List<ModifiedNameEntity>) {
+	private fun modifiedFileNamesImpl(context: Context, list: List<ModifiedNameEntity>) {
 
 		list.forEachIndexed { _, modifiedNameEntity ->
 			runCatching {

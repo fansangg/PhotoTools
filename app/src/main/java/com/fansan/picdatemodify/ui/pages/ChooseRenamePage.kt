@@ -33,11 +33,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.fansan.picdatemodify.R
-import com.fansan.picdatemodify.common.CommonButton
-import com.fansan.picdatemodify.common.DialogWrapper
-import com.fansan.picdatemodify.common.ModifyFileNameDialog
-import com.fansan.picdatemodify.common.TipDialog
+import com.fansan.picdatemodify.common.*
 import com.fansan.picdatemodify.entity.ImageInfoEntity
+import com.fansan.picdatemodify.ui.state.ModifiedFileTaskState
 import com.fansan.picdatemodify.ui.viewmodel.ChooseRenameViewModel
 import com.fansan.picdatemodify.ui.widgets.SpacerW
 import com.fansan.picdatemodify.ui.widgets.TitleColumn
@@ -54,6 +52,9 @@ import com.google.accompanist.placeholder.placeholder
 fun ChooseRenamePage(navHostController: NavHostController, albumName: String) {
 	val vm = viewModel<ChooseRenameViewModel>()
 	val context = LocalContext.current
+	val launcher = writeRequest() {
+		vm.modifiedFileNamesImpl(context)
+	}
 	val lazyListState = rememberLazyListState()
 	val isScrollInProgress = remember {
 		derivedStateOf {
@@ -107,7 +108,7 @@ fun ChooseRenamePage(navHostController: NavHostController, albumName: String) {
 				                                              CommonButton(
 					                                              content = "重命名（${selectedCount.value})",
 				                                              ) {
-
+					                                              vm.modifyFileNameState.showDialog()
 				                                              }
 			                                              })
 
@@ -137,15 +138,12 @@ fun ChooseRenamePage(navHostController: NavHostController, albumName: String) {
 				val dateSource =
 					if (vm.modifyFileNameState.useTaken) "元数据日期" else "修改日期"
 				DialogWrapper(dismissOnBackPress = true) {
-					TipDialog(tips = "即将开始批量重命名照片名称\n\n修改范围: '${vm.modifyFileNameState.selectedAlbumName}'\n日期来源: '$dateSource'\n\n是否继续执行此操作？",
+					TipDialog(tips = "即将重命名选择的${vm.selectedPhotos().size}个文件.\n日期来源: '$dateSource'\n\n是否继续执行此操作？",
 					          confirmText = "继续执行",
 					          showCancel = true,
 					          icons = R.mipmap.warning,
 					          click = {
-						          /*val uriList = vm.getPhotoByAlbumName(
-							          context,
-							          vm.modifyFileNameState.selectedAlbumName
-						          ).map {
+						          val uriList = vm.selectedPhotos().map {
 							          Uri.parse(it.uri)
 						          }
 						          val pendingIntent = MediaStore.createWriteRequest(
@@ -154,7 +152,7 @@ fun ChooseRenamePage(navHostController: NavHostController, albumName: String) {
 						          )
 						          launcher.launch(
 							          IntentSenderRequest.Builder(pendingIntent).build()
-						          )*/
+						          )
 						          vm.modifyFileNameState.dismissWarning()
 					          },
 					          cancelClick = {
@@ -162,6 +160,24 @@ fun ChooseRenamePage(navHostController: NavHostController, albumName: String) {
 					          })
 				}
 			}
+		}
+
+		when (vm.modifyFileNameState.modifiedFileNameTaskState.value) {
+			is ModifiedFileTaskState.InProgress, is ModifiedFileTaskState.Done -> {
+				DialogWrapper {
+					FixLoading(
+						isDone = vm.modifyFileNameState.modifiedFileNameTaskState.value is ModifiedFileTaskState.Done,
+						content = "${vm.modifyFileNameState.modifiedFileNameCurrentIndex.value}/${vm.modifyFileNameState.modifiedFileNameListCount.value}",
+						successCount = vm.modifyFileNameState.modifiedFileNameSuccessCount.value,
+						errorCount = vm.modifyFileNameState.modifiedFileNameFieldCount.value,
+						skipCount = vm.modifyFileNameState.modifiedFileNameSkipCount.value
+					) {
+						vm.modifyFileNameState.resetAll()
+					}
+				}
+			}
+
+			else -> {}
 		}
 	}
 }

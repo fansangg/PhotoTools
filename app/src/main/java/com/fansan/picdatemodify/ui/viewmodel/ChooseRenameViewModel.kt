@@ -1,15 +1,19 @@
 package com.fansan.picdatemodify.ui.viewmodel
 
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
 import android.provider.MediaStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.blankj.utilcode.util.TimeUtils
 import com.fansan.picdatemodify.common.logd
 import com.fansan.picdatemodify.entity.ImageInfoEntity
+import com.fansan.picdatemodify.entity.ModifiedNameEntity
 import com.fansan.picdatemodify.ui.state.ModifyFileNameState
 import kotlin.math.abs
 
@@ -23,6 +27,14 @@ class ChooseRenameViewModel:ViewModel() {
 	val photos = mutableStateListOf<ImageInfoEntity>()
 	var queryDone by mutableStateOf(false)
 	val modifyFileNameState = ModifyFileNameState()
+
+	fun selectedPhotos():List<ModifiedNameEntity>{
+		return photos.filter {
+			it.selected
+		}.map {
+			ModifiedNameEntity(uri = it.uri, modifiedTime = it.lastModified, takenTime = it.taken, displayName = it.displayName)
+		}
+	}
 
 	fun getPhotos(context: Context, name: String) {
 		photos.clear()
@@ -71,5 +83,70 @@ class ChooseRenameViewModel:ViewModel() {
 			}
 		}
 		//slipList()
+	}
+
+	fun modifiedFileNamesImpl(context: Context) {
+
+		selectedPhotos().forEachIndexed { _, modifiedNameEntity ->
+			runCatching {
+				if (modifiedNameEntity.takenTime <= 0) {
+					if (modifyFileNameState.useTaken && modifyFileNameState.skipNoTaken) {
+						synchronized(this@ChooseRenameViewModel){
+							modifyFileNameState.increaseCurrentIndex()
+							modifyFileNameState.increaseSkipCount()
+							return@forEachIndexed
+						}
+					}
+				}
+				val formatTime =
+					if (modifyFileNameState.useTaken && modifiedNameEntity.takenTime > 0) modifiedNameEntity.takenTime else modifiedNameEntity.modifiedTime * 1000
+				val contentValues = ContentValues()
+				val paddingValue = ContentValues()
+				val newDisplayName = java.lang.StringBuilder()
+				if (modifyFileNameState.prefix.isNotEmpty()) {
+					newDisplayName.append(modifyFileNameState.prefix)
+					newDisplayName.append(modifyFileNameState.symbol)
+				}
+				val timeString = TimeUtils.millis2String(formatTime, modifyFileNameState.format)
+				newDisplayName.append(timeString)
+				if (modifiedNameEntity.displayName == newDisplayName.toString()) {
+					synchronized(this@ChooseRenameViewModel) {
+						modifyFileNameState.increaseSuccess()
+						modifyFileNameState.increaseCurrentIndex()
+						return@forEachIndexed
+					}
+				}			//paddingValue.put(Media.IS_PENDING,1)
+				contentValues.put(
+					MediaStore.Images.Media.DISPLAY_NAME,
+					newDisplayName.toString()
+				)			//contentValues.put(Media.IS_PENDING,0)
+				//context.contentResolver.update(Uri.parse(modifiedNameEntity.uri),paddingValue,null,null)
+				val result = context.contentResolver.update(
+					Uri.parse(modifiedNameEntity.uri),
+					contentValues,
+					null,
+					null
+				)
+				synchronized(this@ChooseRenameViewModel) {
+					if (result > 0) {
+						modifyFileNameState.increaseSuccess()
+					} else modifyFileNameState.increaseFailed()
+					modifyFileNameState.increaseCurrentIndex()
+				}
+			}.onFailure {
+				synchronized(this@ChooseRenameViewModel) {
+					modifyFileNameState.increaseFailed()
+					modifyFileNameState.increaseCurrentIndex()
+				}
+			}
+		}
+
+		checkDoen()
+	}
+
+	private fun checkDoen(){
+		if (modifyFileNameState.modifiedFileNameCurrentIndex.value >= modifyFileNameState.modifiedFileNameListCount.value) {
+			modifyFileNameState.taskDone()
+		}
 	}
 }
