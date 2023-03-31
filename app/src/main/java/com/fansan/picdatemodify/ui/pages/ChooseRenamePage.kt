@@ -173,6 +173,7 @@ fun ChooseRenamePage(navHostController: NavHostController, albumName: String) {
 						skipCount = vm.modifyFileNameState.modifiedFileNameSkipCount.value
 					) {
 						vm.modifyFileNameState.resetAll()
+						vm.getPhotos(context, albumName)
 					}
 				}
 			}

@@ -67,7 +67,9 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 	)
 
 	if (readPermissionState.allPermissionsGranted) {
-		viewModel.getAlbums(context)
+		LaunchedEffect(key1 = type, block = {
+			viewModel.getAlbums(context)
+		})
 	}
 
 	val title = when (type) {
@@ -220,7 +222,7 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 
 				}
 			} else {
-				DialogWrapper {
+				Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
 					LoadingStyle2()
 				}
 			}

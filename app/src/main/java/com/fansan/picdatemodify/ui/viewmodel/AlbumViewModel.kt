@@ -31,7 +31,8 @@ class AlbumViewModel : ViewModel() {
 
 
 	fun getAlbums(context: Context) {
-		if (newAlbumMap.isNotEmpty()) return
+		//if (newAlbumMap.isNotEmpty()) return
+		newAlbumMap.clear()
 		val uri = Media.EXTERNAL_CONTENT_URI
 		val projection = arrayOf(
 			Media.BUCKET_DISPLAY_NAME,
