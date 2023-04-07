@@ -192,17 +192,16 @@ private fun ChooseRenameItem(entity: ImageInfoEntity, onClick: () -> Unit) {
 			.height(IntrinsicSize.Max)) {
 			Row(
 				modifier = Modifier
-					.fillMaxSize()
-					.padding(horizontal = 12.dp, vertical = 8.dp),
+					.fillMaxSize(),
 				verticalAlignment = Alignment.CenterVertically
 			) {
 				AsyncImage(
 					model = entity.path,
 					contentDescription = "img",
 					modifier = Modifier
-						.size(60.dp)
+						.size(76.dp)
 						.clip(
-							RoundedCornerShape(9.dp)
+							RoundedCornerShape(topStart = 9.dp, bottomStart = 9.dp)
 						),
 					contentScale = ContentScale.Crop
 				)

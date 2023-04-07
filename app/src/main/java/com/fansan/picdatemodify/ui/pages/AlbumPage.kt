@@ -73,7 +73,7 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 	}
 
 	val title = when (type) {
-		AlbumType.DATE.name -> "选择相册来查看"
+		AlbumType.DATE.name,AlbumType.EXIF.name -> "选择相册来查看"
 		AlbumType.FILENAME.name -> "选择要操作的相册"
 		else -> "相册"
 	}
@@ -107,7 +107,9 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 											viewModel.modifyFileNameState.selectedAlbumName = "all"
 											viewModel.modifyFileNameState.showFuncSelect()
 										}
-										else -> {}
+										else -> {
+											navHostController.navigate("${Router.exifPhotoList}/_allImgs")
+										}
 									}
 
 								}
@@ -124,7 +126,9 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 												entity.albumName
 											viewModel.modifyFileNameState.showFuncSelect()
 										}
-										else -> {}
+										else -> {
+											navHostController.navigate("${Router.exifPhotoList}/${entity.albumName}")
+										}
 									}
 
 								}
@@ -174,7 +178,7 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 								val dateSource =
 									if (viewModel.modifyFileNameState.useTaken) "元数据日期" else "修改日期"
 								DialogWrapper(dismissOnBackPress = true) {
-									TipDialog(tips = "即将开始批量重命名照片名称\n\n修改范围: '${viewModel.modifyFileNameState.selectedAlbumName}'\n日期来源: '$dateSource'\n\n是否继续执行此操作？",
+									TipDialog(tips = "即将开始批量重命名照片名称\n\n修改范围: '${if(viewModel.modifyFileNameState.selectedAlbumName == "all") "所有照片" else viewModel.modifyFileNameState.selectedAlbumName}'\n日期来源: '$dateSource'\n\n是否继续执行此操作？",
 									          confirmText = "继续执行",
 									          showCancel = true,
 									          icons = R.mipmap.warning,

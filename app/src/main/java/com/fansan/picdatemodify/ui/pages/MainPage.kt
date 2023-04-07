@@ -58,6 +58,7 @@ fun MainPage(navHostController: NavHostController) {
 						when(it.name){
 							Constants.MODIFIED_DATE_LABEL -> navHostController.navigate("${Router.album}/${AlbumType.DATE}")
 							Constants.MODIFIED_FILE_NAME_LABEL -> navHostController.navigate("${Router.album}/${AlbumType.FILENAME}")
+							Constants.EXIF_LABEL -> navHostController.navigate("${Router.album}/${AlbumType.EXIF}")
 						}
 					}
 				}

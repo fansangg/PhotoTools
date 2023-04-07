@@ -11,4 +11,5 @@ object Router{
 	val details = "details"
 	val exifInfo = "exifInfo"
 	val chooseRename = "chooseRename"
+	val exifPhotoList = "exifPhotoList"
 }

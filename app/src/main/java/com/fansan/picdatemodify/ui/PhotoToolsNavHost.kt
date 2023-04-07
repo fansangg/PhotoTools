@@ -93,6 +93,11 @@ fun PhotoToolsNavHost(
 			val data = it.arguments?.getString("albumName") ?: "_allImgs"
 			ChooseRenamePage(navHostController = navController, albumName = data)
 		}
+
+		defaultAnimComposable("${Router.exifPhotoList}/{albumName}",listOf(navArgument("albumName"){})){
+			val data = it.arguments?.getString("albumName") ?: "_allImgs"
+			ExifPhotoPage(navHostController = navController, albumName = data)
+		}
 	}
 }
 
