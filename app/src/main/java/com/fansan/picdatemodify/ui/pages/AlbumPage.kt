@@ -4,19 +4,14 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore.*
 import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,12 +23,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.*
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.airbnb.lottie.compose.*
-import com.blankj.utilcode.util.ToastUtils
 import com.fansan.picdatemodify.R
 import com.fansan.picdatemodify.common.*
 import com.fansan.picdatemodify.entity.AlbumType
@@ -85,7 +78,7 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 	TitleColumn(title = title, backClick = { navHostController.popBackStack() }) {
 		if (readPermissionState.allPermissionsGranted) {
 			if (viewModel.allDone.value) {
-				if (viewModel.newAlbumMap.isEmpty()) {
+				if (viewModel.newAlbumList.isEmpty()) {
 					EmptyDir(modifier = Modifier.fillMaxSize(), tips = "没有找到文件")
 				} else {
 					Box {
@@ -114,20 +107,19 @@ fun AlbumPage(navHostController: NavHostController, type: String) {
 
 								}
 							}
-							items(viewModel.newAlbumMap.keys.toList()) {
-								val entity = viewModel.newAlbumMap.getValue(it)
-								AlbumCard(albumEntity = entity) {
+							items(viewModel.newAlbumList) {
+								AlbumCard(albumEntity = it) {
 									when (type) {
 										AlbumType.DATE.name -> {
-											navHostController.navigate("${Router.photoPage}/${entity.albumName}")
+											navHostController.navigate("${Router.photoPage}/${it.albumName}")
 										}
 										AlbumType.FILENAME.name -> {
 											viewModel.modifyFileNameState.selectedAlbumName =
-												entity.albumName
+												it.albumName
 											viewModel.modifyFileNameState.showFuncSelect()
 										}
 										else -> {
-											navHostController.navigate("${Router.exifPhotoList}/${entity.albumName}")
+											navHostController.navigate("${Router.exifPhotoList}/${it.albumName}")
 										}
 									}
 

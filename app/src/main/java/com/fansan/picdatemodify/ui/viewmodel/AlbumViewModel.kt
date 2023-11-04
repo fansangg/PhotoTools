@@ -9,7 +9,6 @@ import android.provider.MediaStore.Images.Media
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.loader.content.CursorLoader
 import com.blankj.utilcode.util.TimeUtils
 import com.fansan.picdatemodify.common.logd
 import com.fansan.picdatemodify.entity.ModifiedNameEntity
@@ -22,7 +21,7 @@ import kotlin.math.ceil
 
 class AlbumViewModel : ViewModel() {
 
-	val newAlbumMap = mutableMapOf<String, NewAlbumEntity>()
+	val newAlbumList = mutableListOf<NewAlbumEntity>()
 	var firstImg = ""
 	var allImageCount = 0
 	val allDone = mutableStateOf(false)
@@ -31,8 +30,8 @@ class AlbumViewModel : ViewModel() {
 
 
 	fun getAlbums(context: Context) {
-		//if (newAlbumMap.isNotEmpty()) return
-		newAlbumMap.clear()
+		//if (newAlbumList.isNotEmpty()) return
+		newAlbumList.clear()
 		val uri = Media.EXTERNAL_CONTENT_URI
 		val projection = arrayOf(
 			Media.BUCKET_DISPLAY_NAME,
@@ -54,11 +53,14 @@ class AlbumViewModel : ViewModel() {
 						if (it.isFirst) {
 							firstImg = imgData
 						}
-						if (newAlbumMap.containsKey(bucketDisplayName)) continue
+						if (newAlbumList.count { list -> list.albumName == bucketDisplayName } > 0) continue
 						val imgCount = getCount(context, bucketDisplayName)
 						val newAlbumEntity = NewAlbumEntity(bucketDisplayName, imgData, imgCount)
-						newAlbumMap[bucketDisplayName] = newAlbumEntity
+						newAlbumList.add(newAlbumEntity)
 					} while (it.moveToNext())
+					newAlbumList.sortByDescending { entity ->
+						entity.count
+					}
 				}
 			}
 		} catch (e: Exception) {
@@ -71,15 +73,14 @@ class AlbumViewModel : ViewModel() {
 
 	private fun getCount(context: Context, name: String): Int {
 		val uri = Media.EXTERNAL_CONTENT_URI
-		val cursor = CursorLoader(
-			context,
-			uri,
-			null,
-			"${MediaStore.MediaColumns.BUCKET_DISPLAY_NAME}=?",
-			arrayOf(name),
-			null
-		).loadInBackground()
-		return if (cursor == null || !cursor.moveToFirst()) 0 else cursor.count
+		context.contentResolver.query(uri,null,
+		                              "${MediaStore.MediaColumns.BUCKET_DISPLAY_NAME}=?",
+		                              arrayOf(name),
+		                              null)
+			?.use {
+				return it.count
+			}
+		return 0
 	}
 
 	fun modifiedFileNames(context: Context) {

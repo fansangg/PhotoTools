@@ -22,7 +22,7 @@ fun ExifDetailsPage(navHostController: NavHostController,info: ImageInfoEntity){
 
 	LazyColumn(content = {
 		items(count = 100){
-			ListItem(headlineText = {
+			ListItem(headlineContent = {
 				Text(text = "123")
 			}, modifier = Modifier.height(50.dp))
 		}
