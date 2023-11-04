@@ -28,7 +28,6 @@ import com.fansan.picdatemodify.ui.widgets.SpacerH
 import com.fansan.picdatemodify.ui.widgets.SpacerW
 import com.fansan.picdatemodify.util.rememberMutableStateOf
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModifyFileNameDialog(
 	confirm: (String, String, String, Boolean, Boolean) -> Unit, cancel: () -> Unit
@@ -100,18 +99,18 @@ fun ModifyFileNameDialog(
 				                  modifier = Modifier
 					                  .weight(.28f)
 					                  .focusRequester(focusRequester = focusRequester),
-				                  colors = TextFieldDefaults.outlinedTextFieldColors(
-					                  focusedBorderColor = MaterialTheme.colorScheme.outline,
-					                  focusedLabelColor = MaterialTheme.colorScheme.outline,
-					                  focusedSupportingTextColor = MaterialTheme.colorScheme.outline,
-					                  unfocusedSupportingTextColor = MaterialTheme.colorScheme.outline,
-					                  unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-					                  unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+				                  colors = OutlinedTextFieldDefaults.colors(
 					                  cursorColor = MaterialTheme.colorScheme.outline,
 					                  selectionColors = TextSelectionColors(
 						                  MaterialTheme.colorScheme.outline,
 						                  MaterialTheme.colorScheme.outline
-					                  )
+					                  ),
+					                  focusedBorderColor = MaterialTheme.colorScheme.outline,
+					                  unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+					                  focusedLabelColor = MaterialTheme.colorScheme.outline,
+					                  unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+					                  focusedSupportingTextColor = MaterialTheme.colorScheme.outline,
+					                  unfocusedSupportingTextColor = MaterialTheme.colorScheme.outline,
 				                  )
 				)
 
@@ -134,11 +133,11 @@ fun ModifyFileNameDialog(
 				                  supportingText = {
 					                  Text(text = "日期格式", fontSize = 8.sp)
 				                  },
-				                  colors = TextFieldDefaults.outlinedTextFieldColors(
+				                  colors = OutlinedTextFieldDefaults.colors(
+					                  disabledTextColor = MaterialTheme.colorScheme.onSurface,
 					                  disabledBorderColor = MaterialTheme.colorScheme.outline,
 					                  disabledLabelColor = MaterialTheme.colorScheme.outline,
 					                  disabledSupportingTextColor = MaterialTheme.colorScheme.outline,
-					                  disabledTextColor = MaterialTheme.colorScheme.onSurface
 				                  ),
 				                  textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
 				)
